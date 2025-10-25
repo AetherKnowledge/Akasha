@@ -1,6 +1,7 @@
 package com.rosuelo.chatbot
 
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.SettingsSessionManager
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
@@ -45,6 +46,16 @@ object SupabaseProvider {
         ) {
             install(Auth)
             install(Postgrest)
+
+        }
+    }
+
+    private fun isInPreview(): Boolean {
+        return try {
+            Class.forName("androidx.compose.ui.tooling.preview.Preview")
+            true
+        } catch (_: ClassNotFoundException) {
+            false
         }
     }
 

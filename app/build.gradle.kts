@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization") version "2.2.20"
+
 }
 
 android {
@@ -49,8 +50,6 @@ android {
     }
 }
 
-val ktor_version: String by project
-
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -69,18 +68,22 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(platform("io.github.jan-tennert.supabase:bom:3.2.5"))
-    implementation("io.github.jan-tennert.supabase:postgrest-kt")
-    implementation("io.github.jan-tennert.supabase:auth-kt")
-    implementation("io.github.jan-tennert.supabase:realtime-kt")
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.postgrest.kt)
+    implementation(libs.supabase.auth.kt)
+    implementation(libs.supabase.realtime.kt)
 
-    implementation("io.ktor:ktor-client-android:$ktor_version")
-    implementation("io.ktor:ktor-client-core:$ktor_version")
-    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation(libs.ktor.android)
+    implementation(libs.ktor.core)
+    implementation(libs.ktor.cio)
 
     //JSON
-    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation(libs.ktor.content.negotiation)
+    implementation(libs.ktor.serialization.json)
+    implementation(libs.kotlinx.serialization.json)
 
+    //Google
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 }

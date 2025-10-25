@@ -9,17 +9,22 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Color(0xFFAF61E2),
+    secondary = Color(0xFF2D115A),
+    tertiary = Pink80,
+    background = Color.Black,
+    onBackground = Color.White
+
+
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
+    primary = Color(0xFF2D115A),
+    secondary = Color(0xFFAF61E2),
     tertiary = Pink40
 
     /* Other default colors to override
@@ -51,7 +56,7 @@ fun ChatbotTheme(
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = DarkColorScheme,
         typography = Typography,
         content = content
     )

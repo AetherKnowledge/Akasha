@@ -26,7 +26,6 @@ fun ChatBox(modifier: Modifier = Modifier) {
     var userInput by remember { mutableStateOf(TextFieldValue("")) }
     val coroutineScope = rememberCoroutineScope()
 
-    // Load chat history
     LaunchedEffect(Unit) {
         chatMessages.addAll(getChats())
     }
