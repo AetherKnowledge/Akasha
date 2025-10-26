@@ -1,7 +1,7 @@
 package com.rosuelo.chatbot
 
+import ChatBotProvider.sendChatMessage
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
@@ -22,13 +23,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
+import com.rosuelo.chatbot.SupabaseProvider.Chat
+import com.rosuelo.chatbot.SupabaseProvider.ChatMessage
+import com.rosuelo.chatbot.SupabaseProvider.createNewChat
 import com.rosuelo.chatbot.SupabaseProvider.supabase
 import com.rosuelo.chatbot.ui.theme.ChatbotTheme
 import io.github.jan.supabase.auth.auth
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +71,7 @@ class MainActivity : ComponentActivity() {
                                         refreshUser()
                                     }
                                 })
-                                ChatBox(currentUser)
+                                PanelSwitcher(currentUser)
                             }
                         }
                     }
@@ -82,14 +83,34 @@ class MainActivity : ComponentActivity() {
                         })
                     }
                 }
-
             }
         }
     }
-
 }
 
+@Composable
+fun PanelSwitcher(currentUser: UserData) {
+    var currentPanel by remember { mutableStateOf("new") }
+    var currentChat by remember { mutableStateOf<Chat?>(null) }
 
+    if(currentChat == null){
+        currentPanel = "new"
+    }
 
+    Column {
+        when (currentPanel) {
+            "new" -> NewChat(
+                userData = currentUser,
+                onAsk = { chat ->
+                    currentChat = chat
+                    if(chat != null) {
+                        currentPanel = "chats"
+                    }
+                }
+            )
+            "chats" -> ChatBox(currentUser, currentChat!!)
+        }
+    }
+}
 
 

@@ -1,7 +1,9 @@
 package com.rosuelo.chatbot
 
+import android.util.Log
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.SettingsSessionManager
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
@@ -35,8 +37,15 @@ object SupabaseProvider {
     @Serializable
     data class ChatMessage(
         val type: MessageType,
-        val name: String,
         val content: String
+    )
+
+    @Serializable
+    data class Chat(
+        val id: String,
+        val user_id: String,
+        val title: String,
+        var messages: MutableList<ChatMessage> = mutableListOf()
     )
 
     val supabase by lazy {
@@ -60,20 +69,62 @@ object SupabaseProvider {
     }
 
 
-    suspend fun getChats(): List<ChatMessage> {
+    suspend fun getChats(userId: String): List<Chat> {
         return try{
-            supabase.from("chathistory").select().decodeList<ChatRecord>()
-                .map { record ->
-                    ChatMessage(
-                        type = record.message.type,
-                        name = if (record.message.type == MessageType.HUMAN) "You" else "AI",
-                        content = record.message.content
-                    )
+            supabase.from("chat").select(){
+                filter {
+                    eq("user_id", userId)
                 }
+            }
+                .decodeList<Chat>()
+                .map {
+                    chat ->
+
+                    chat.messages.addAll(getMessages(chat.id))
+
+                    chat
+                }
+
         }
         catch (t: Throwable) {
             android.util.Log.e("ChatBox", "Failed to load chat history", t)
             emptyList()
+        }
+    }
+
+    suspend fun getMessages(chatId: String): List<ChatMessage> {
+        return try{
+            supabase.from("message").select(){
+                filter {
+                    eq("session_id", chatId)
+                }
+            }.decodeList<ChatRecord>().map {
+                result ->
+                ChatMessage(
+                    type = result.message.type,
+                    content = result.message.content
+                )
+            }
+        }
+        catch (t: Throwable) {
+            android.util.Log.e("ChatBox", "Failed to load chat messages", t)
+            emptyList()
+        }
+    }
+
+    suspend fun createNewChat(userId: String, title: String? = "New Chat"): Chat? {
+        return try {
+            supabase.from("chat").insert(
+                mapOf(
+                    "user_id" to userId,
+                    "title" to title
+                )
+            ){
+                select()
+            }.decodeSingle<Chat>()
+        } catch (t: Throwable) {
+            android.util.Log.e("ChatBox", "Failed to create new chat", t)
+            null
         }
     }
 

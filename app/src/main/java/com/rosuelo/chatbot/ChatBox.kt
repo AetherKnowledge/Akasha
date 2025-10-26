@@ -16,22 +16,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import com.rosuelo.chatbot.SupabaseProvider.ChatMessage
 import com.rosuelo.chatbot.SupabaseProvider.MessageType
-import com.rosuelo.chatbot.SupabaseProvider.getChats
 import com.rosuelo.chatbot.ui.theme.ChatbotTheme
 import kotlinx.coroutines.launch
 import androidx.compose.material3.TextFieldDefaults
+import com.rosuelo.chatbot.SupabaseProvider.Chat
 
 @Composable
-fun ChatBox(userData: UserData,modifier: Modifier = Modifier) {
+fun ChatBox(
+    userData: UserData,
+    chat: Chat,
+    modifier: Modifier = Modifier,
+) {
     val chatMessages = remember { mutableStateListOf<ChatMessage>() }
     var userInput by remember { mutableStateOf(TextFieldValue("")) }
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        chatMessages.addAll(getChats())
+        chatMessages.addAll(chat.messages ?: emptyList())
     }
+    Gradient()
 
-    Column{
+    Column(modifier = modifier) {
         LazyColumn(
             modifier = Modifier
                 .weight(1f),
@@ -65,6 +70,7 @@ fun ChatBox(userData: UserData,modifier: Modifier = Modifier) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
+                modifier = Modifier.height(55.dp),
                 onClick = {
                     if (userInput.text.isNotBlank()) {
                         val userMessage = userInput.text
@@ -73,17 +79,17 @@ fun ChatBox(userData: UserData,modifier: Modifier = Modifier) {
                         chatMessages.add(
                             ChatMessage(
                                 type = MessageType.HUMAN,
-                                name = "You",
                                 content = userMessage
                             )
                         )
 
                         coroutineScope.launch {
-                            var reply = sendChatMessage(ChatBotProvider.OutgoingMessage("test", userMessage))
-                            if(reply == null){
+                            val reply = sendChatMessage(
+                                ChatBotProvider.OutgoingMessage(chat.id, userMessage)
+                            )
+                            if (reply == null) {
                                 chatMessages.removeAt(chatMessages.size - 1)
-                            }
-                            else{
+                            } else {
                                 chatMessages.add(reply)
                             }
                         }
@@ -97,8 +103,9 @@ fun ChatBox(userData: UserData,modifier: Modifier = Modifier) {
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 )
+
             ) {
-                Text("Send", modifier = Modifier.padding(horizontal = 4.dp))
+                Text("Send", modifier = Modifier.padding(horizontal = 4.dp), MaterialTheme.colorScheme.onSurface)
             }
         }
     }
@@ -142,8 +149,23 @@ fun ChatBoxPreview() {
         ChatBox(
             UserData(
                 id = "test",
-                email = "test"
-            )
+                email = "test@example.com"
+            ),
+            chat = Chat(
+                id = "chat1",
+                user_id = "test",
+                title = "Sample Chat",
+                messages = mutableListOf(
+                    ChatMessage(
+                        type = MessageType.HUMAN,
+                        content = "Hello, how are you?"
+                    ),
+                    ChatMessage(
+                        type = MessageType.AI,
+                        content = "I'm good, thank you! How can I assist you today?"
+                    )
+                )
+            ),
         )
     }
 }

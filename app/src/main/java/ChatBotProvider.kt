@@ -29,7 +29,7 @@ object ChatBotProvider {
 
     @Serializable
     data class OutgoingMessage(
-        val userId: String,
+        val chatId: String,
         val text: String
     )
 
@@ -45,7 +45,7 @@ object ChatBotProvider {
                 contentType(ContentType.Application.Json)
                 setBody(chatMessage)
             }.body<ChatBotReply>()
-            return ChatMessage(MessageType.AI, "AI", reply.output);
+            return ChatMessage(MessageType.AI, reply.output);
         } catch (t: Throwable) {
             android.util.Log.e("ChatBox", "Failed to send message", t)
             return null

@@ -25,10 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.rosuelo.chatbot.SupabaseProvider.supabase
 import com.rosuelo.chatbot.ui.theme.ChatbotTheme
-import io.github.jan.supabase.auth.auth
-import kotlinx.coroutines.launch
 
 
 @Composable
