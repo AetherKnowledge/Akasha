@@ -99,7 +99,7 @@ fun RegisterScreen(
 
             OrSeparator()
 
-            EmailSignIn(onClick = { emailValue, passwordValue ->
+            EmailSignIn(isLogin = isLogin.value, onClick = { emailValue, passwordValue ->
                 if(isLogin.value){
                     authManager.signInWithEmail(emailValue, passwordValue)
                         .onEach { result ->
@@ -194,7 +194,7 @@ private fun OrSeparator() {
 }
 
 @Composable
-private fun EmailSignIn(onClick: (emailValue: String, passwordValue: String) -> Unit){
+private fun EmailSignIn(isLogin: Boolean, onClick: (emailValue: String, passwordValue: String) -> Unit){
     var emailValue by remember {
         mutableStateOf("")
     }
@@ -283,7 +283,7 @@ private fun EmailSignIn(onClick: (emailValue: String, passwordValue: String) -> 
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "Sign up",
+            text = if(isLogin) "Log in" else "Sign Up",
             modifier = Modifier.padding(vertical = 4.dp)
         )
     }

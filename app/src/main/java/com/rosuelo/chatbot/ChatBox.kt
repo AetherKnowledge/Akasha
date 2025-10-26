@@ -19,9 +19,10 @@ import com.rosuelo.chatbot.SupabaseProvider.MessageType
 import com.rosuelo.chatbot.SupabaseProvider.getChats
 import com.rosuelo.chatbot.ui.theme.ChatbotTheme
 import kotlinx.coroutines.launch
+import androidx.compose.material3.TextFieldDefaults
 
 @Composable
-fun ChatBox(modifier: Modifier = Modifier) {
+fun ChatBox(userData: UserData,modifier: Modifier = Modifier) {
     val chatMessages = remember { mutableStateListOf<ChatMessage>() }
     var userInput by remember { mutableStateOf(TextFieldValue("")) }
     val coroutineScope = rememberCoroutineScope()
@@ -30,15 +31,10 @@ fun ChatBox(modifier: Modifier = Modifier) {
         chatMessages.addAll(getChats())
     }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(8.dp)
-    ) {
+    Column{
         LazyColumn(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+                .weight(1f),
             reverseLayout = true
         ) {
             items(chatMessages.reversed()) { chatRecord ->
@@ -56,7 +52,16 @@ fun ChatBox(modifier: Modifier = Modifier) {
                 value = userInput,
                 onValueChange = { userInput = it },
                 placeholder = { Text("Type a message...") },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.colors(
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                )
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
@@ -86,8 +91,14 @@ fun ChatBox(modifier: Modifier = Modifier) {
                         userInput = TextFieldValue("")
                     }
                 }
+            ,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
-                Text("Send")
+                Text("Send", modifier = Modifier.padding(horizontal = 4.dp))
             }
         }
     }
@@ -97,27 +108,29 @@ fun ChatBox(modifier: Modifier = Modifier) {
 @Composable
 fun MessageBubble(chatMessage: ChatMessage) {
     val isHuman = chatMessage.type == MessageType.HUMAN
-    val backgroundColor = if (isHuman) Color(0xFFDCF8C6) else Color(0xFFE3E3E3)
-    val alignment = if (isHuman) Alignment.End else Alignment.Start
+    val colors = MaterialTheme.colorScheme
+    val backgroundColor = if (isHuman) colors.primaryContainer else colors.secondaryContainer
+    val contentColor = if (isHuman) colors.onPrimaryContainer else colors.onSecondaryContainer
     val shape = if (isHuman) {
-        RoundedCornerShape(12.dp, 0.dp, 12.dp, 12.dp)
+        RoundedCornerShape(topStart = 12.dp, topEnd = 0.dp, bottomEnd = 12.dp, bottomStart = 12.dp)
     } else {
-        RoundedCornerShape(0.dp, 12.dp, 12.dp, 12.dp)
+        RoundedCornerShape(16.dp)
     }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = if (isHuman) Arrangement.End else Arrangement.Start
+        horizontalArrangement = if (isHuman) Arrangement.End else Arrangement.Center
     ) {
         Box(
             modifier = Modifier
                 .background(backgroundColor, shape)
                 .padding(12.dp)
-                .widthIn(max = 280.dp)
+                .widthIn(max = if (isHuman) 320.dp else 560.dp)
+                .then(if (!isHuman) Modifier.fillMaxWidth(0.9f) else Modifier)
         ) {
-            Text(chatMessage.content)
+            Text(chatMessage.content, color = contentColor)
         }
     }
 }
@@ -126,6 +139,11 @@ fun MessageBubble(chatMessage: ChatMessage) {
 @Composable
 fun ChatBoxPreview() {
     ChatbotTheme {
-        ChatBox()
+        ChatBox(
+            UserData(
+                id = "test",
+                email = "test"
+            )
+        )
     }
 }

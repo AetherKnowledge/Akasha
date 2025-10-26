@@ -6,6 +6,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.rosuelo.chatbot.SupabaseProvider.supabase
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
@@ -94,17 +95,7 @@ class AuthManager(private val context: Context) {
         }
     }
 
-    fun getCurrentUser(): UserData{
 
-        if(supabase.auth.currentSessionOrNull() == null || supabase.auth.currentSessionOrNull()?.user == null || supabase.auth.currentSessionOrNull()?.user?.email == null){
-            throw Exception("User not found")
-        }
-
-        return UserData(
-            id = supabase.auth.currentSessionOrNull()!!.user!!.id,
-            email = supabase.auth.currentSessionOrNull()!!.user!!.email!!
-        )
-    }
 }
 
 data class UserData(
@@ -117,4 +108,26 @@ sealed interface AuthResponse {
         val userData: UserData
     ) : AuthResponse
     data class Error(val message: String?) : AuthResponse
+}
+
+suspend fun doesCurrentUserExist(): Boolean{
+    supabase.auth.awaitInitialization()
+    var session = supabase.auth.currentSessionOrNull()
+    Log.d("auth", "Session: $session")
+
+    return session != null
+}
+
+fun getCurrentUser(): UserData{
+
+    var session = supabase.auth.currentSessionOrNull()
+
+    if(session == null || session.user == null || session.user?.email == null){
+        throw Exception("User not found")
+    }
+
+    return UserData(
+        id = session.user!!.id,
+        email = session.user!!.email!!
+    )
 }
