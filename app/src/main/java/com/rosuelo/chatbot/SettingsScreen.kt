@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -251,8 +252,11 @@ private fun AvatarPreview(avatarUrl: String?, fallbackLetter: String, onClick: (
                     .data(avatarUrl)
                     .crossfade(true)
                     .build(),
-                modifier = Modifier.size(64.dp).clip(CircleShape),
                 contentDescription = "Avatar preview",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
             )
         } else {
             Text(
