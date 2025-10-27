@@ -42,7 +42,7 @@ object ChatBotProvider {
     suspend fun sendChatMessage(chatId: String, message: String): SupabaseProvider.ChatMessage? {
 
         try {
-            var reply = httpClient.post("https://n8n.safehub-lcup.uk/webhook-test/akasha"){
+            var reply = httpClient.post("https://n8n.safehub-lcup.uk/webhook/akasha"){
                 contentType(ContentType.Application.Json)
                 setBody(
                     OutgoingMessage(

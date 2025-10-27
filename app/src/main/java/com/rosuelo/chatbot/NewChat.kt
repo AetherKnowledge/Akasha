@@ -56,18 +56,14 @@ fun NewChat(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.background),
-        contentAlignment = Alignment.TopCenter
+            .background(Color.Transparent),
+        contentAlignment = Alignment.Center
     ) {
-        Gradient()
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Greeting
             Text(
@@ -155,8 +151,11 @@ fun NewChat(
                             Text("Ask")
                         }
                     }
+
                 }
             }
+
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

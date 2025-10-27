@@ -56,7 +56,10 @@ class MainActivity : ComponentActivity() {
                 }
 
                 if(user != null){
+
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        Gradient()
+
                         Column(modifier = Modifier.padding(innerPadding).padding(8.dp)){
                             PanelSwitcher(
                                 user!!,
