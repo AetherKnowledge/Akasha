@@ -104,7 +104,7 @@ fun UserIcon(
     onLogoutClick: (() -> Unit)? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val firstLetter = userData.email.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+    val firstLetter = userData.name?.firstOrNull()?.uppercaseChar()?.toString() ?: userData.email.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
 
     Box(
         modifier = Modifier.padding(12.dp)
@@ -131,7 +131,7 @@ fun UserIcon(
             else{
                 Text(
                     text = firstLetter,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold
                     )
@@ -139,7 +139,6 @@ fun UserIcon(
             }
         }
 
-        // Dropdown Menu
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -174,8 +173,7 @@ fun ChatTopBarPreview(){
         ChatTopBar(
             UserData(
                 id = "test",
-                email = "test",
-                avatar = "https://lh3.googleusercontent.com/a/ACg8ocJOtEaeyN9M-90XiOF7dtWVvhq5vdTKXwkKLOOV8rLxu5i-TMs=s96-c"
+                email = "test"
             )
         )
     }

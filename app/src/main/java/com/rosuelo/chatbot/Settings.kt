@@ -5,3 +5,6 @@ enum class Tools {
     CALCULATOR,
 }
 
+object Settings {
+    var enabledTools: Set<Tools> = emptySet()
+}

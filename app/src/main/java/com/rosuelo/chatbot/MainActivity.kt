@@ -65,6 +65,9 @@ class MainActivity : ComponentActivity() {
                                         supabase.auth.signOut()
                                         refreshUser()
                                     }
+                                },
+                                onUserUpdate = { updatedUser ->
+                                    user = updatedUser
                                 }
                             )
                         }
@@ -99,11 +102,15 @@ private enum class PanelState {
     NEW_CHAT,
     CHAT_BOX,
     MESSAGES_BOX,
-
+    SETTINGS,
 }
 
 @Composable
-fun PanelSwitcher(currentUser: UserData, onLogoutClick: (() -> Unit)? = null,) {
+fun PanelSwitcher(
+    currentUser: UserData,
+    onLogoutClick: (() -> Unit)? = null,
+    onUserUpdate: ((UserData) -> Unit)? = null
+    ) {
     var currentPanel by remember { mutableStateOf(PanelState.NEW_CHAT) }
     var currentChat by remember { mutableStateOf<Chat?>(null) }
     var chats by remember { mutableStateOf<List<Chat>>(emptyList()) }
@@ -117,6 +124,9 @@ fun PanelSwitcher(currentUser: UserData, onLogoutClick: (() -> Unit)? = null,) {
         onLogoutClick = onLogoutClick,
         onHamburgerClick = {
             currentPanel = PanelState.MESSAGES_BOX
+        },
+        onSettingsClick = {
+            currentPanel = PanelState.SETTINGS
         }
     )
 
@@ -149,8 +159,11 @@ fun PanelSwitcher(currentUser: UserData, onLogoutClick: (() -> Unit)? = null,) {
                     currentPanel = PanelState.NEW_CHAT
                 }
             )
+            PanelState.SETTINGS -> SettingsScreen(
+                userData = currentUser,
+                onBack = { currentPanel = PanelState.NEW_CHAT },
+                onUserUpdate = onUserUpdate
+            )
         }
     }
 }
-
-

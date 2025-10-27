@@ -5,10 +5,16 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.storage.Storage
+import io.github.jan.supabase.storage.storage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 object SupabaseProvider {
+
+    enum class Buckets(string: String) {
+        AVATARS("avatars")
+    }
 
     @Serializable
     data class ChatRecord(
@@ -53,7 +59,7 @@ object SupabaseProvider {
         ) {
             install(Auth)
             install(Postgrest)
-
+            install(Storage)
         }
     }
 
@@ -112,6 +118,59 @@ object SupabaseProvider {
             }.decodeSingle<Chat>()
         } catch (t: Throwable) {
             Log.e("ChatBox", "Failed to create new chat", t)
+            null
+        }
+    }
+
+    suspend fun updateProfile(oldUserData: UserData, name: String?, imageData: ImageData?): UserData? {
+        return try {
+            var imageUrl = oldUserData.avatar
+
+            try{
+                if(imageData != null){
+                    val uploadedUrl = uploadAvatar(oldUserData.id, imageData)
+                    if(uploadedUrl != null){
+                        imageUrl = uploadedUrl
+                    }
+                }
+            }catch (e: Exception){
+                Log.e("SupabaseProvider", "Failed to upload avatar", e)
+            }
+
+            supabase.from("profile").update({
+                set("name", name)
+                set("avatar", imageUrl)
+            }) {
+                filter { eq("id", oldUserData.id) }
+                select()
+            }.decodeSingle<UserData>()
+        } catch (t: Throwable) {
+            Log.e("SupabaseProvider", "Failed to update profile", t)
+            null
+        }
+
+    }
+
+    suspend fun uploadAvatar(userId: String, imageData: ImageData): String? {
+        return try {
+            if (imageData.bytes == null || imageData.bytes.isEmpty() || imageData.mimeType == null || imageData.mimeType.isBlank()) {
+                Log.e("SupabaseProvider", "Image data is empty")
+                return null
+            }
+
+            val bucket = supabase.storage.from(Buckets.AVATARS.name.lowercase())
+            val filePath = "${userId}/avatar_${userId}.${imageData.mimeType.substringAfterLast('/')}"
+            bucket.upload(
+                path = filePath,
+                data = imageData.bytes,
+                options = {
+                    upsert = true
+                }
+            )
+            val publicUrl = bucket.publicUrl(filePath)
+            publicUrl.toString()
+        } catch (t: Throwable) {
+            Log.e("SupabaseProvider", "Failed to upload avatar", t)
             null
         }
     }
