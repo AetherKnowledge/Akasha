@@ -1,5 +1,6 @@
-import com.rosuelo.chatbot.SupabaseProvider.ChatMessage
-import com.rosuelo.chatbot.SupabaseProvider.MessageType
+package com.rosuelo.chatbot
+
+import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
@@ -10,7 +11,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
-import android.util.Log
 import kotlinx.serialization.json.Json
 
 object ChatBotProvider {
@@ -30,7 +30,8 @@ object ChatBotProvider {
     @Serializable
     data class OutgoingMessage(
         val chatId: String,
-        val text: String
+        val text: String,
+        val tools: List<Tools>
     )
 
     @Serializable
@@ -38,14 +39,20 @@ object ChatBotProvider {
         val output: String
     )
 
-    suspend fun sendChatMessage(chatMessage: OutgoingMessage): ChatMessage? {
-        Log.d("test", chatMessage.toString())
+    suspend fun sendChatMessage(chatId: String, message: String): SupabaseProvider.ChatMessage? {
+
         try {
-            var reply = httpClient.post("https://n8n.safehub-lcup.uk/webhook/chatbot"){
+            var reply = httpClient.post("https://n8n.safehub-lcup.uk/webhook-test/akasha"){
                 contentType(ContentType.Application.Json)
-                setBody(chatMessage)
+                setBody(
+                    OutgoingMessage(
+                        chatId = chatId,
+                        text = message,
+                        tools = Settings.enabledTools.toList()
+                    )
+                )
             }.body<ChatBotReply>()
-            return ChatMessage(MessageType.AI, reply.output)
+            return SupabaseProvider.ChatMessage(SupabaseProvider.MessageType.AI, reply.output)
         } catch (t: Throwable) {
             Log.e("ChatBox", "Failed to send message", t)
             return null

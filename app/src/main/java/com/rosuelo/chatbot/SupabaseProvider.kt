@@ -122,6 +122,20 @@ object SupabaseProvider {
         }
     }
 
+    suspend fun deleteChat(chatId: String): Boolean {
+        return try {
+            supabase.from("chat").delete(){
+                filter {
+                    eq("id", chatId)
+                }
+            }
+            true
+        } catch (t: Throwable) {
+            Log.e("ChatBox", "Failed to delete chat", t)
+            false
+        }
+    }
+
     suspend fun updateProfile(oldUserData: UserData, name: String?, imageData: ImageData?): UserData? {
         return try {
             var imageUrl = oldUserData.avatar

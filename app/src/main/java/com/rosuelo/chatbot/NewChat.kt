@@ -1,6 +1,6 @@
 package com.rosuelo.chatbot
 
-import ChatBotProvider.sendChatMessage
+import com.rosuelo.chatbot.ChatBotProvider.sendChatMessage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -174,9 +174,7 @@ private suspend fun createNewChatandSendMessage(userId: String, prompt: String):
         )
     )
 
-    val reply = sendChatMessage(
-        ChatBotProvider.OutgoingMessage(newChat.id, prompt)
-    )
+    val reply = sendChatMessage(newChat.id, prompt)
     if (reply == null) {
         newChat.messages.removeAt(newChat.messages.size - 1)
     }

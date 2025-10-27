@@ -1,6 +1,6 @@
 package com.rosuelo.chatbot
 
-import ChatBotProvider.sendChatMessage
+import com.rosuelo.chatbot.ChatBotProvider.sendChatMessage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -83,9 +83,7 @@ fun ChatBox(
                             )
 
                             coroutineScope.launch {
-                                val reply = sendChatMessage(
-                                    ChatBotProvider.OutgoingMessage(chat.id, userMessage)
-                                )
+                                val reply = sendChatMessage(chat.id, userMessage)
                                 if (reply == null) {
                                     chatMessages.removeAt(chatMessages.size - 1)
                                 } else {

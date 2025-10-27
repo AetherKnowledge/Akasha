@@ -94,4 +94,7 @@ dependencies {
     //Coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.ktor3)
+
+    implementation(libs.androidx.datastore.preferences)
+
 }

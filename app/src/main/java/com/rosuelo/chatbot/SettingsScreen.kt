@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -182,56 +184,17 @@ private fun ProfileChanger(userData: UserData, onUserUpdate: ((UserData) -> Unit
                         containerColor = colors.primary,
                         contentColor = colors.onPrimary
                     )
-                ) { Text(text = if (updating) "Saving..." else "Save Changes") }
+                ) {
+                    if (updating) {
+                        CircularProgressIndicator()
+                    } else {
+                        Text("Update Profile")
+                    }
+                }
             }
         }
     }
 
-}
-
-@Composable
-private fun ToolChanger(){
-    var webSearch by remember {
-        mutableStateOf(Settings.enabledTools.contains(Tools.WEBSEARCH))
-    }
-    var calculator by remember {
-        mutableStateOf(Settings.enabledTools.contains(Tools.CALCULATOR))
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Tools", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-
-            ToolToggleRow(
-                checked = webSearch,
-                label = "Web search",
-                description = "Allow Akasha to browse the web for answers",
-                onCheckedChange = { checked ->
-                    webSearch = checked
-                    updateEnabledTools(webSearch, calculator)
-                }
-            )
-
-            ToolToggleRow(
-                checked = calculator,
-                label = "Calculator",
-                description = "Enable math operations and evaluation",
-                onCheckedChange = { checked ->
-                    calculator = checked
-                    updateEnabledTools(webSearch, calculator)
-                }
-            )
-        }
-    }
-}
-
-private fun updateEnabledTools(webSearch: Boolean, calculator: Boolean) {
-    Settings.enabledTools = buildSet {
-        if (webSearch) add(Tools.WEBSEARCH)
-        if (calculator) add(Tools.CALCULATOR)
-    }
 }
 
 @Composable
@@ -270,13 +233,37 @@ private fun AvatarPreview(avatarUrl: String?, fallbackLetter: String, onClick: (
 }
 
 @Composable
+private fun ToolChanger(){
+    Card(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Tools", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+
+            ToolToggleRow(
+                tool = Tools.WEBSEARCH,
+                label = "Web search",
+                description = "Allow Akasha to browse the web for answers",
+            )
+
+//            ToolToggleRow(
+//                tool = Tools.CALCULATOR,
+//                label = "Calculator",
+//                description = "Enable math operations and evaluation",
+//            )
+        }
+    }
+}
+
+@Composable
 private fun ToolToggleRow(
-    checked: Boolean,
+    tool: Tools,
     label: String,
     description: String,
-    onCheckedChange: (Boolean) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -287,8 +274,12 @@ private fun ToolToggleRow(
             Text(description, style = MaterialTheme.typography.bodySmall, color = colors.onSurface.copy(alpha = 0.7f))
         }
         Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
+            checked = Settings.enabledTools.contains(tool),
+            onCheckedChange = { checked ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    Settings.toggle(context, tool, checked)
+                }
+            },
             colors = SwitchDefaults.colors(
                 checkedThumbColor = colors.onPrimary,
                 checkedTrackColor = colors.primary

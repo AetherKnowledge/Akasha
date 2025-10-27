@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Settings.initialize(this)
         enableEdgeToEdge()
 
         setContent {
@@ -114,6 +115,7 @@ fun PanelSwitcher(
     var currentPanel by remember { mutableStateOf(PanelState.NEW_CHAT) }
     var currentChat by remember { mutableStateOf<Chat?>(null) }
     var chats by remember { mutableStateOf<List<Chat>>(emptyList()) }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         chats = getChats(currentUser.id)
@@ -157,7 +159,18 @@ fun PanelSwitcher(
                 },
                 onNewChatClick = {
                     currentPanel = PanelState.NEW_CHAT
+                },
+                onDeleteChat = {
+                    chat ->
+                    coroutineScope.launch {
+                        chats = chats.filter { it.id != chat.id }
+                        if(currentChat?.id == chat.id){
+                            currentPanel = PanelState.MESSAGES_BOX
+                            currentChat = null
+                        }
+                    }
                 }
+
             )
             PanelState.SETTINGS -> SettingsScreen(
                 userData = currentUser,
