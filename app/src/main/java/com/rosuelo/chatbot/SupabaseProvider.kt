@@ -2,8 +2,6 @@ package com.rosuelo.chatbot
 
 import android.util.Log
 import io.github.jan.supabase.auth.Auth
-import io.github.jan.supabase.auth.SettingsSessionManager
-import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.from
@@ -59,16 +57,6 @@ object SupabaseProvider {
         }
     }
 
-    private fun isInPreview(): Boolean {
-        return try {
-            Class.forName("androidx.compose.ui.tooling.preview.Preview")
-            true
-        } catch (_: ClassNotFoundException) {
-            false
-        }
-    }
-
-
     suspend fun getChats(userId: String): List<Chat> {
         return try{
             supabase.from("chat").select(){
@@ -87,7 +75,7 @@ object SupabaseProvider {
 
         }
         catch (t: Throwable) {
-            android.util.Log.e("ChatBox", "Failed to load chat history", t)
+            Log.e("ChatBox", "Failed to load chat history", t)
             emptyList()
         }
     }
@@ -107,7 +95,7 @@ object SupabaseProvider {
             }
         }
         catch (t: Throwable) {
-            android.util.Log.e("ChatBox", "Failed to load chat messages", t)
+            Log.e("ChatBox", "Failed to load chat messages", t)
             emptyList()
         }
     }
@@ -123,10 +111,8 @@ object SupabaseProvider {
                 select()
             }.decodeSingle<Chat>()
         } catch (t: Throwable) {
-            android.util.Log.e("ChatBox", "Failed to create new chat", t)
+            Log.e("ChatBox", "Failed to create new chat", t)
             null
         }
     }
-
-
 }

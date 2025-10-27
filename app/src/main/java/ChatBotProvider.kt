@@ -10,7 +10,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
-import android.util.Log;
+import android.util.Log
 import kotlinx.serialization.json.Json
 
 object ChatBotProvider {
@@ -45,9 +45,9 @@ object ChatBotProvider {
                 contentType(ContentType.Application.Json)
                 setBody(chatMessage)
             }.body<ChatBotReply>()
-            return ChatMessage(MessageType.AI, reply.output);
+            return ChatMessage(MessageType.AI, reply.output)
         } catch (t: Throwable) {
-            android.util.Log.e("ChatBox", "Failed to send message", t)
+            Log.e("ChatBox", "Failed to send message", t)
             return null
         }
     }

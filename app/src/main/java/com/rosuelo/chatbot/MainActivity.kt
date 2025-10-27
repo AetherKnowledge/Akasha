@@ -1,6 +1,5 @@
 package com.rosuelo.chatbot
 
-import ChatBotProvider.sendChatMessage
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,8 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rosuelo.chatbot.SupabaseProvider.Chat
-import com.rosuelo.chatbot.SupabaseProvider.ChatMessage
-import com.rosuelo.chatbot.SupabaseProvider.createNewChat
+import com.rosuelo.chatbot.SupabaseProvider.getChats
 import com.rosuelo.chatbot.SupabaseProvider.supabase
 import com.rosuelo.chatbot.ui.theme.ChatbotTheme
 import io.github.jan.supabase.auth.auth
@@ -65,13 +63,16 @@ class MainActivity : ComponentActivity() {
                             Column(modifier = Modifier.padding(innerPadding).padding(8.dp)){
                                 var currentUser = getCurrentUser()
 
-                                ChatTopBar(currentUser, onLogoutClick = {
-                                    coroutineScope.launch {
-                                        supabase.auth.signOut()
-                                        refreshUser()
+
+                                PanelSwitcher(
+                                    currentUser,
+                                    onLogoutClick = {
+                                        coroutineScope.launch {
+                                            supabase.auth.signOut()
+                                            refreshUser()
+                                        }
                                     }
-                                })
-                                PanelSwitcher(currentUser)
+                                )
                             }
                         }
                     }
@@ -88,27 +89,60 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun PanelSwitcher(currentUser: UserData) {
-    var currentPanel by remember { mutableStateOf("new") }
-    var currentChat by remember { mutableStateOf<Chat?>(null) }
+private enum class PanelState {
+    NEW_CHAT,
+    CHAT_BOX,
+    MESSAGES_BOX,
 
-    if(currentChat == null){
-        currentPanel = "new"
+}
+
+@Composable
+fun PanelSwitcher(currentUser: UserData, onLogoutClick: (() -> Unit)? = null,) {
+    var currentPanel by remember { mutableStateOf(PanelState.NEW_CHAT) }
+    var currentChat by remember { mutableStateOf<Chat?>(null) }
+    var chats by remember { mutableStateOf<List<Chat>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        chats = getChats(currentUser.id)
     }
+
+    ChatTopBar(
+        currentUser,
+        onLogoutClick = onLogoutClick,
+        onHamburgerClick = {
+            currentPanel = PanelState.MESSAGES_BOX
+        }
+    )
 
     Column {
         when (currentPanel) {
-            "new" -> NewChat(
+            PanelState.NEW_CHAT -> NewChat(
                 userData = currentUser,
                 onAsk = { chat ->
                     currentChat = chat
                     if(chat != null) {
-                        currentPanel = "chats"
+                        chats = chats + chat
+                        currentChat = chat
+                        currentPanel = PanelState.CHAT_BOX
                     }
                 }
             )
-            "chats" -> ChatBox(currentUser, currentChat!!)
+            PanelState.CHAT_BOX -> ChatBox(currentChat!!,
+                onUpdateChat = { updatedChat ->
+                    chats = chats.map { if (it.id == updatedChat.id) updatedChat else it }
+                    currentChat = updatedChat
+                }
+            )
+            PanelState.MESSAGES_BOX -> MessagesBox(
+                chats = chats,
+                onChatClick = { chat ->
+                    currentChat = chat
+                    currentPanel = PanelState.CHAT_BOX
+                },
+                onNewChatClick = {
+                    currentPanel = PanelState.NEW_CHAT
+                }
+            )
         }
     }
 }

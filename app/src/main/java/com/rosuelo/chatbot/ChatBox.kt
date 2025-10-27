@@ -23,16 +23,16 @@ import com.rosuelo.chatbot.SupabaseProvider.Chat
 
 @Composable
 fun ChatBox(
-    userData: UserData,
     chat: Chat,
     modifier: Modifier = Modifier,
+    onUpdateChat: ((Chat) -> Unit)? = null
 ) {
     val chatMessages = remember { mutableStateListOf<ChatMessage>() }
     var userInput by remember { mutableStateOf(TextFieldValue("")) }
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        chatMessages.addAll(chat.messages ?: emptyList())
+        chatMessages.addAll(chat.messages)
     }
     Gradient()
 
@@ -92,6 +92,8 @@ fun ChatBox(
                             } else {
                                 chatMessages.add(reply)
                             }
+
+                            onUpdateChat?.invoke(chat.copy(messages = chatMessages.toMutableList()))
                         }
 
                         userInput = TextFieldValue("")
@@ -147,10 +149,6 @@ fun MessageBubble(chatMessage: ChatMessage) {
 fun ChatBoxPreview() {
     ChatbotTheme {
         ChatBox(
-            UserData(
-                id = "test",
-                email = "test@example.com"
-            ),
             chat = Chat(
                 id = "chat1",
                 user_id = "test",

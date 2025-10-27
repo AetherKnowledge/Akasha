@@ -10,18 +10,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,21 +36,25 @@ fun ChatTopBar(
     modifier: Modifier = Modifier,
     onSettingsClick: (() -> Unit)? = null,
     onLogoutClick: (() -> Unit)? = null,
+    onHamburgerClick: (() -> Unit)? = null
    ) {
-    val coroutineScope = rememberCoroutineScope()
-
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Row(
                 modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Drawer()
+                HamburgerButton(
+                    onHamburgerClick = onHamburgerClick
+                )
                 Logo()
             }
 
@@ -61,8 +67,20 @@ fun ChatTopBar(
 }
 
 @Composable
-fun Drawer(){
-    Text(text = "test")
+fun HamburgerButton(
+    modifier: Modifier = Modifier,
+    onHamburgerClick: (() -> Unit)? = null,
+) {
+    TextButton(
+        onClick = {onHamburgerClick?.invoke()},
+        modifier = modifier
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_hamburger),
+            contentDescription = "Hamburger",
+            tint = MaterialTheme.colorScheme.onBackground
+        )
+    }
 }
 
 @Composable
@@ -84,7 +102,9 @@ fun UserIcon(
     var expanded by remember { mutableStateOf(false) }
     val firstLetter = userData.email.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
 
-    Box {
+    Box(
+        modifier = Modifier.padding(12.dp)
+    ) {
         // Circular Button
         IconButton(
             onClick = { expanded = true },

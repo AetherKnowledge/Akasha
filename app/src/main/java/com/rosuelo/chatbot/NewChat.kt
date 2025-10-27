@@ -205,7 +205,6 @@ private fun NewChatPreview() {
     ChatbotTheme {
         NewChat(
             userData = UserData(id = "1", email = "john.christian@example.com"),
-            onAsk = {}
         )
     }
 }
