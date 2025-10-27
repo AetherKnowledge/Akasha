@@ -20,6 +20,7 @@ import com.rosuelo.chatbot.ui.theme.ChatbotTheme
 import kotlinx.coroutines.launch
 import androidx.compose.material3.TextFieldDefaults
 import com.rosuelo.chatbot.SupabaseProvider.Chat
+import dev.jeziellago.compose.markdowntext.MarkdownText
 
 @Composable
 fun ChatBox(
@@ -34,80 +35,76 @@ fun ChatBox(
     LaunchedEffect(Unit) {
         chatMessages.addAll(chat.messages)
     }
-    Gradient()
 
-    Column(modifier = modifier) {
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f),
-            reverseLayout = true
-        ) {
-            items(chatMessages.reversed()) { chatRecord ->
-                MessageBubble(chatRecord)
+    Box(modifier = modifier.fillMaxSize()) {
+        Gradient()
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                reverseLayout = true
+            ) {
+                items(chatMessages.reversed()) { chatRecord ->
+                    MessageBubble(chatRecord)
+                }
             }
-        }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = userInput,
-                onValueChange = { userInput = it },
-                placeholder = { Text("Type a message...") },
+            Row(
                 modifier = Modifier
-                    .weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = TextFieldDefaults.colors(
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                    cursorColor = MaterialTheme.colorScheme.primary
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextField(
+                    value = userInput,
+                    onValueChange = { userInput = it },
+                    placeholder = { Text("Type a message...") },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
                 )
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(
-                modifier = Modifier.height(55.dp),
-                onClick = {
-                    if (userInput.text.isNotBlank()) {
-                        val userMessage = userInput.text
-
-                        // Add user's message
-                        chatMessages.add(
-                            ChatMessage(
-                                type = MessageType.HUMAN,
-                                content = userMessage
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    modifier = Modifier.height(55.dp),
+                    onClick = {
+                        if (userInput.text.isNotBlank()) {
+                            val userMessage = userInput.text
+                            chatMessages.add(
+                                ChatMessage(
+                                    type = MessageType.HUMAN,
+                                    content = userMessage
+                                )
                             )
-                        )
 
-                        coroutineScope.launch {
-                            val reply = sendChatMessage(
-                                ChatBotProvider.OutgoingMessage(chat.id, userMessage)
-                            )
-                            if (reply == null) {
-                                chatMessages.removeAt(chatMessages.size - 1)
-                            } else {
-                                chatMessages.add(reply)
+                            coroutineScope.launch {
+                                val reply = sendChatMessage(
+                                    ChatBotProvider.OutgoingMessage(chat.id, userMessage)
+                                )
+                                if (reply == null) {
+                                    chatMessages.removeAt(chatMessages.size - 1)
+                                } else {
+                                    chatMessages.add(reply)
+                                }
+                                onUpdateChat?.invoke(chat.copy(messages = chatMessages.toMutableList()))
                             }
 
-                            onUpdateChat?.invoke(chat.copy(messages = chatMessages.toMutableList()))
+                            userInput = TextFieldValue("")
                         }
-
-                        userInput = TextFieldValue("")
-                    }
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("Send", modifier = Modifier.padding(horizontal = 4.dp))
                 }
-            ,
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                )
-
-            ) {
-                Text("Send", modifier = Modifier.padding(horizontal = 4.dp), MaterialTheme.colorScheme.onSurface)
             }
         }
     }
@@ -139,7 +136,12 @@ fun MessageBubble(chatMessage: ChatMessage) {
                 .widthIn(max = if (isHuman) 320.dp else 560.dp)
                 .then(if (!isHuman) Modifier.fillMaxWidth(0.9f) else Modifier)
         ) {
-            Text(chatMessage.content, color = contentColor)
+            MarkdownText(
+                markdown = chatMessage.content,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = contentColor
+                ),
+            )
         }
     }
 }
@@ -156,11 +158,34 @@ fun ChatBoxPreview() {
                 messages = mutableListOf(
                     ChatMessage(
                         type = MessageType.HUMAN,
-                        content = "Hello, how are you?"
+                        content = """
+            **Hello!**  
+            How are you today?
+
+            Here’s a quick *Markdown* test:
+            - Item 1
+            - Item 2
+            - [OpenAI website](https://openai.com)
+        """.trimIndent()
                     ),
                     ChatMessage(
                         type = MessageType.AI,
-                        content = "I'm good, thank you! How can I assist you today?"
+                        content = """
+            Hi there 👋  
+            I'm doing great — thanks for asking!
+
+            ### Features I support:
+            1. **Bold text**
+            2. *Italic text*
+            3. `Inline code`
+            4. Fenced code blocks:
+            ```kotlin
+            val message = "Hello from Kotlin!"
+            println(message)
+            ```
+
+            > You can even show blockquotes like this!
+        """.trimIndent()
                     )
                 )
             ),
