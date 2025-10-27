@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -47,7 +48,8 @@ fun ChatTopBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(12.dp),
+            .padding(2.dp)
+            .background(Color.Transparent),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -149,7 +151,7 @@ fun UserIcon(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .padding(2.dp) // adds padding inside the menu
+                .padding(2.dp)
         ) {
             DropdownMenuItem(
                 text = { Text("Settings") },

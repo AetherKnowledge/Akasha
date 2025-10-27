@@ -36,9 +36,7 @@ fun ChatBox(
         chatMessages.addAll(chat.messages)
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        Gradient()
-
+    Box(modifier = modifier.fillMaxSize().background(Color.Transparent)) {
         Column(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier.weight(1f),
