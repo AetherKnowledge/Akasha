@@ -11,8 +11,10 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.providers.builtin.IDToken
+import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.Serializable
 import java.security.MessageDigest
 import java.util.UUID
 
@@ -26,7 +28,7 @@ class AuthManager(private val context: Context) {
                 password = passwordValue
             }
 
-            emit(AuthResponse.Success(getCurrentUser()))
+            emit(AuthResponse.Success(getCurrentUser()!!))
         }
         catch (e: Exception){
             emit(AuthResponse.Error(e.localizedMessage))
@@ -40,7 +42,7 @@ class AuthManager(private val context: Context) {
                 password = passwordValue
             }
 
-            emit(AuthResponse.Success(getCurrentUser()))
+            emit(AuthResponse.Success(getCurrentUser()!!))
         }
         catch (e: Exception){
             emit(AuthResponse.Error(e.localizedMessage))
@@ -88,9 +90,10 @@ class AuthManager(private val context: Context) {
                 provider = Google
             }
 
-            emit(AuthResponse.Success(getCurrentUser()))
+            emit(AuthResponse.Success(getCurrentUser()!!))
         }
         catch(e: Exception){
+            Log.e("AuthManager", "Google sign-in failed", e)
             emit(AuthResponse.Error(e.localizedMessage))
         }
     }
@@ -98,9 +101,12 @@ class AuthManager(private val context: Context) {
 
 }
 
+@Serializable
 data class UserData(
     val id: String,
-    val email: String
+    val email: String,
+    val name: String? = null,
+    val avatar: String? = null
 )
 
 sealed interface AuthResponse {
@@ -118,16 +124,17 @@ suspend fun doesCurrentUserExist(): Boolean{
     return session != null
 }
 
-fun getCurrentUser(): UserData{
-
+suspend fun getCurrentUser(): UserData?{
+    supabase.auth.awaitInitialization()
     var session = supabase.auth.currentSessionOrNull()
 
     if(session == null || session.user == null || session.user?.email == null){
-        throw Exception("User not found")
+        return null
     }
 
-    return UserData(
-        id = session.user!!.id,
-        email = session.user!!.email!!
-    )
+    return supabase.from("profile").select(){
+        filter {
+            eq("id", session.user!!.id)
+        }
+    }.decodeSingle<UserData>()
 }

@@ -71,7 +71,7 @@ fun NewChat(
         ) {
             // Greeting
             Text(
-                text = "Hello, ${displayNameFrom(userData)}",
+                text = "Hello, ${userData.name?: displayNameFrom(userData)}",
                 style = MaterialTheme.typography.headlineLarge,
                 color = colors.primary,
                 textAlign = TextAlign.Center,

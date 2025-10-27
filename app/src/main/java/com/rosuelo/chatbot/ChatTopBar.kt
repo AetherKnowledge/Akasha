@@ -23,10 +23,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.rosuelo.chatbot.ui.theme.ChatbotTheme
 
 
@@ -109,19 +113,30 @@ fun UserIcon(
         IconButton(
             onClick = { expanded = true },
             modifier = Modifier
-                .size(30.dp)
+                .size(50.dp)
                 .background(
                     color = MaterialTheme.colorScheme.primary,
                     shape = CircleShape
                 )
         ) {
-            Text(
-                text = firstLetter,
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold
+            if(userData.avatar != null){
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(userData.avatar)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "User avatar",
                 )
-            )
+            }
+            else{
+                Text(
+                    text = firstLetter,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
         }
 
         // Dropdown Menu
@@ -159,7 +174,8 @@ fun ChatTopBarPreview(){
         ChatTopBar(
             UserData(
                 id = "test",
-                email = "test"
+                email = "test",
+                avatar = "https://lh3.googleusercontent.com/a/ACg8ocJOtEaeyN9M-90XiOF7dtWVvhq5vdTKXwkKLOOV8rLxu5i-TMs=s96-c"
             )
         )
     }

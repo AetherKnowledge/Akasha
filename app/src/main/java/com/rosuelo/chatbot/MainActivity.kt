@@ -37,55 +37,61 @@ class MainActivity : ComponentActivity() {
         setContent {
             ChatbotTheme {
                 val coroutineScope = rememberCoroutineScope()
-                var userExists by remember { mutableStateOf<Boolean?>(null) }
+                var user by remember { mutableStateOf<UserData?>(null) }
+                var refreshingUser by remember { mutableStateOf(true) }
 
                 suspend fun refreshUser(){
-                    userExists = doesCurrentUserExist()
+                    user = getCurrentUser()
+                    refreshingUser = false
                 }
 
                 LaunchedEffect(Unit) {
                     refreshUser()
                 }
 
-                when (userExists) {
-                    null -> {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.background),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                    true -> {
-                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                            Column(modifier = Modifier.padding(innerPadding).padding(8.dp)){
-                                var currentUser = getCurrentUser()
+                if(refreshingUser){
+                    Loading()
+                    return@ChatbotTheme
+                }
 
-
-                                PanelSwitcher(
-                                    currentUser,
-                                    onLogoutClick = {
-                                        coroutineScope.launch {
-                                            supabase.auth.signOut()
-                                            refreshUser()
-                                        }
+                if(user != null){
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        Column(modifier = Modifier.padding(innerPadding).padding(8.dp)){
+                            PanelSwitcher(
+                                user!!,
+                                onLogoutClick = {
+                                    refreshingUser = true
+                                    coroutineScope.launch {
+                                        supabase.auth.signOut()
+                                        refreshUser()
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
                     }
-                    false -> {
-                        RegisterScreen(onRegister = {
-                            coroutineScope.launch {
-                                refreshUser()
-                            }
-                        })
-                    }
+                }
+                else{
+                    RegisterScreen(onRegister = {
+                        refreshingUser = true
+                        coroutineScope.launch {
+                            refreshUser()
+                        }
+                    })
                 }
             }
         }
+    }
+}
+
+@Composable
+fun Loading(){
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
     }
 }
 

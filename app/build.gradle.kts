@@ -89,4 +89,8 @@ dependencies {
 
     //Markdown
     implementation(libs.compose.markdown)
+
+    //Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.ktor3)
 }
