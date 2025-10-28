@@ -5,6 +5,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,11 +17,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -58,6 +70,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onBack: (() -> Unit)? = null,
     onUserUpdate: ((UserData) -> Unit)? = null,
+    onLogoutClick: (() -> Unit)? = null
 ) {
     val colors = MaterialTheme.colorScheme
 
@@ -65,55 +78,86 @@ fun SettingsScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Transparent)
-            .padding(16.dp)
+            .padding(24.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(Modifier.height(32.dp))
+            
+            // Profile Section
+            ProfileSection(
+                userData = userData,
+                onUserUpdate = onUserUpdate
+            )
 
-            ProfileChanger(onUserUpdate = onUserUpdate, userData = userData)
-            ToolChanger()
+            Spacer(Modifier.height(24.dp))
 
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = { onBack?.invoke() }) { Text("Back") }
+            // Tools Section
+            ToolsSection()
+
+            Spacer(Modifier.weight(1f))
+
+            // Bottom Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { onBack?.invoke() },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF3A4D4D),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Return", style = MaterialTheme.typography.bodyMedium)
+                }
+
+                Button(
+                    onClick = { onLogoutClick?.invoke() },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFDC3545),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Log Out", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
         }
     }
 }
 
-@Serializable
-data class ImageData(
-    val bytes: ByteArray?,
-    val mimeType: String?
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ImageData
-
-        if (!bytes.contentEquals(other.bytes)) return false
-        if (mimeType != other.mimeType) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = bytes.contentHashCode()
-        result = 31 * result + mimeType.hashCode()
-        return result
-    }
-}
-
-
 @Composable
-private fun ProfileChanger(userData: UserData, onUserUpdate: ((UserData) -> Unit)? = null) {
+private fun ProfileSection(
+    userData: UserData,
+    onUserUpdate: ((UserData) -> Unit)? = null
+) {
     var displayName by remember { mutableStateOf(userData.name ?: displayNameFromEmail(userData.email)) }
     var newImageUri = remember { mutableStateOf<String?>(null) }
     var updating by remember { mutableStateOf(false) }
     var scope = rememberCoroutineScope()
-    val colors = MaterialTheme.colorScheme
-
+    var isEditingName by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val imageData = remember { mutableStateOf<ImageData?>(null) }
-
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -122,51 +166,91 @@ private fun ProfileChanger(userData: UserData, onUserUpdate: ((UserData) -> Unit
                 scope.launch {
                     newImageUri.value = uri.toString()
                     imageData.value = readBytesAndMime(context, uri)
-
-                    Log.d("ProfileChanger", "Picked image URI: $uri")
-                    Log.d("ProfileChanger", "Read image data: ${imageData.value}")
                 }
             }
         }
     )
 
-    Card(
-        modifier = Modifier.fillMaxWidth()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                AvatarPreview(
-                    avatarUrl = newImageUri.value?.toString() ?: userData.avatar,
-                    fallbackLetter = userData.email.first().uppercase(),
-                    onClick = {
-                        if (!updating) {
-                            imagePicker.launch("image/*")
-                        }
+        // Profile Image with Edit Icon
+        Box(
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .border(3.dp, Color(0xFF4CAF50), CircleShape)
+                    .clickable { if (!updating) imagePicker.launch("image/*") }
+            ) {
+                if (newImageUri.value?.toString() != null || userData.avatar != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(newImageUri.value?.toString() ?: userData.avatar)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Profile picture",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFF3A4D4D)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = userData.email.first().uppercase(),
+                            style = MaterialTheme.typography.displayMedium,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
+                }
+            }
+        }
 
-                )
+        // Name with Edit Icon
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (isEditingName) {
                 OutlinedTextField(
                     value = displayName,
                     onValueChange = { displayName = it },
-                    label = { Text("Display name") },
                     singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = colors.surface,
-                        unfocusedContainerColor = colors.surface,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        cursorColor = colors.primary,
+                    textStyle = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.White.copy(alpha = 0.5f),
+                        unfocusedIndicatorColor = Color.White.copy(alpha = 0.3f),
+                        cursorColor = Color.White,
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White
+                    ),
+                    modifier = Modifier.width(200.dp)
+                )
+            } else {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
             }
-
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-                val scope = rememberCoroutineScope()
-                Button(
-                    onClick = {
-                        if(updating) return@Button
-
+            
+            IconButton(
+                onClick = { 
+                    if (isEditingName && displayName != userData.name) {
                         updating = true
                         scope.launch {
                             val updated = SupabaseProvider.updateProfile(
@@ -178,79 +262,28 @@ private fun ProfileChanger(userData: UserData, onUserUpdate: ((UserData) -> Unit
                                 onUserUpdate?.invoke(updated)
                             }
                             updating = false
+                            isEditingName = false
                         }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.primary,
-                        contentColor = colors.onPrimary
-                    )
-                ) {
-                    if (updating) {
-                        CircularProgressIndicator()
                     } else {
-                        Text("Update Profile")
+                        isEditingName = !isEditingName
                     }
+                },
+                modifier = Modifier.size(32.dp)
+            ) {
+                if (updating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit name",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             }
-        }
-    }
-
-}
-
-@Composable
-private fun AvatarPreview(avatarUrl: String?, fallbackLetter: String, onClick: (() -> Unit)? = null) {
-    val colors = MaterialTheme.colorScheme
-    val context = LocalContext.current
-
-    IconButton(
-        onClick = {onClick?.invoke()},
-        modifier = Modifier
-            .size(64.dp)
-            .clip(CircleShape)
-            .background(colors.primary),
-    ) {
-        if (avatarUrl != null && avatarUrl.isNotBlank()) {
-            AsyncImage(
-                model = ImageRequest.Builder(context)
-                    .data(avatarUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = "Avatar preview",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Text(
-                text = fallbackLetter,
-                style = MaterialTheme.typography.headlineMedium,
-                color = colors.onPrimary,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
-
-@Composable
-private fun ToolChanger(){
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Tools", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-
-            ToolToggleRow(
-                tool = Tools.WEBSEARCH,
-                label = "Web search",
-                description = "Allow Akasha to browse the web for answers",
-            )
-
-//            ToolToggleRow(
-//                tool = Tools.CALCULATOR,
-//                label = "Calculator",
-//                description = "Enable math operations and evaluation",
-//            )
         }
     }
 }
@@ -288,6 +321,48 @@ private fun ToolToggleRow(
     }
 }
 
+@Composable
+private fun ToolsSection() {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Separator()
+
+        Spacer(Modifier.height(16.dp))
+
+        // Web Search Toggle
+        ToolToggleRow(
+            tool = Tools.WEBSEARCH,
+            label = "Web Search",
+            description = "Allow Akasha to browse the web for answers",
+        )
+    }
+}
+
+@Serializable
+data class ImageData(
+    val bytes: ByteArray?,
+    val mimeType: String?
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ImageData
+
+        if (!bytes.contentEquals(other.bytes)) return false
+        if (mimeType != other.mimeType) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = bytes.contentHashCode()
+        result = 31 * result + mimeType.hashCode()
+        return result
+    }
+}
+
 private fun displayNameFromEmail(email: String): String {
     val local = email.substringBefore('@')
     val parts = local.split('.', '_', '-', '+')
@@ -318,5 +393,34 @@ private suspend fun readBytesAndMime(context: android.content.Context, uri: Uri)
             Log.e("readBytesAndMime", "Failed to read bytes from URI "+ t.localizedMessage, t)
             ImageData(null, null)
         }
+    }
+}
+
+@Composable
+private fun Separator() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f))
+        )
+
+        Text(
+            text = "Tools",
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f))
+        )
     }
 }

@@ -31,7 +31,7 @@ class AuthManager(private val context: Context) {
             emit(AuthResponse.Success(getCurrentUser()!!))
         }
         catch (e: Exception){
-            emit(AuthResponse.Error(e.localizedMessage))
+            emit(AuthResponse.Error(convertErrorToMessage(e)))
         }
     }
 
@@ -45,7 +45,7 @@ class AuthManager(private val context: Context) {
             emit(AuthResponse.Success(getCurrentUser()!!))
         }
         catch (e: Exception){
-            emit(AuthResponse.Error(e.localizedMessage))
+            emit(AuthResponse.Error(convertErrorToMessage(e)))
         }
     }
 
@@ -94,7 +94,7 @@ class AuthManager(private val context: Context) {
         }
         catch(e: Exception){
             Log.e("AuthManager", "Google sign-in failed", e)
-            emit(AuthResponse.Error(e.localizedMessage))
+            emit(AuthResponse.Error(convertErrorToMessage(e)))
         }
     }
 
@@ -137,4 +137,13 @@ suspend fun getCurrentUser(): UserData?{
             eq("id", session.user!!.id)
         }
     }.decodeSingle<UserData>()
+}
+
+private fun convertErrorToMessage(e: Exception): String{
+    return when{
+        e.localizedMessage?.lowercase()?.contains("invalid login credentials") == true -> "Invalid email or password."
+        e.localizedMessage?.lowercase()?.contains("user already registered") == true -> "User already exists."
+        e.localizedMessage?.lowercase()?.contains("weak_password") == true -> "The password is too weak."
+        else -> "An unknown error occurred ${e.localizedMessage}"
+    }
 }

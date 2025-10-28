@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,7 +32,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -65,13 +68,21 @@ fun NewChat(
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Greeting
-            Text(
-                text = "Hello, ${userData.name?: displayNameFrom(userData)}",
-                style = MaterialTheme.typography.headlineLarge,
-                color = colors.primary,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold
+            val gradient = Brush.verticalGradient(
+                colors = listOf(
+                    colors.secondary,
+                    colors.primary
+                )
+            )
+
+            BasicText(
+                text = "Hello, ${userData.name ?: displayNameFrom(userData)}!",
+                style = TextStyle(
+                    brush = gradient,
+                    fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
             )
 
             Spacer(modifier = Modifier.height(24.dp))

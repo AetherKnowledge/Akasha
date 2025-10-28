@@ -178,7 +178,8 @@ fun PanelSwitcher(
             PanelState.SETTINGS -> SettingsScreen(
                 userData = currentUser,
                 onBack = { currentPanel = PanelState.NEW_CHAT },
-                onUserUpdate = onUserUpdate
+                onUserUpdate = onUserUpdate,
+                onLogoutClick = onLogoutClick,
             )
         }
     }

@@ -1,5 +1,6 @@
 package com.rosuelo.chatbot
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -57,7 +59,6 @@ fun ChatTopBar(
         ) {
             Row(
                 modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 HamburgerButton(
@@ -86,19 +87,31 @@ fun HamburgerButton(
         Icon(
             painter = painterResource(id = R.drawable.ic_hamburger),
             contentDescription = "Hamburger",
-            tint = MaterialTheme.colorScheme.onBackground
+            tint = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.size(32.dp)
         )
     }
 }
 
 @Composable
 fun Logo(){
-    Text(
-        text = "Akasha",
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.onBackground,
-        fontWeight = FontWeight.Bold
-    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ){
+        Image(
+            painter = painterResource(R.drawable.ic_logo),
+            contentDescription = "Akasha AI Logo",
+            modifier = Modifier.size(38.dp)
+        )
+        Text(
+            text = "Akasha AI",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.Medium,
+            fontSize = 18.sp
+        )
+    }
 }
 
 @Composable

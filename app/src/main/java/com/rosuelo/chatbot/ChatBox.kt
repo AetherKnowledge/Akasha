@@ -111,7 +111,7 @@ fun ChatBox(
 fun MessageBubble(chatMessage: ChatMessage) {
     val isHuman = chatMessage.type == MessageType.HUMAN
     val colors = MaterialTheme.colorScheme
-    val backgroundColor = if (isHuman) colors.primaryContainer else colors.secondaryContainer
+    val backgroundColor = if (isHuman) colors.primaryContainer else Color.Transparent
     val contentColor = if (isHuman) colors.onPrimaryContainer else colors.onSecondaryContainer
     val shape = if (isHuman) {
         RoundedCornerShape(topStart = 12.dp, topEnd = 0.dp, bottomEnd = 12.dp, bottomStart = 12.dp)

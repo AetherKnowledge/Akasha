@@ -96,5 +96,6 @@ dependencies {
     implementation(libs.coil.network.ktor3)
 
     implementation(libs.androidx.datastore.preferences)
-
+    implementation(libs.material3)
+    implementation(libs.androidx.material.icons.extended)
 }
