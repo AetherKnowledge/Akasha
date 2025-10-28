@@ -1,6 +1,8 @@
 package com.rosuelo.chatbot
 
 import android.util.Log
+import com.rosuelo.chatbot.SupabaseProvider.supabase
+import io.github.jan.supabase.auth.auth
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
@@ -31,7 +33,8 @@ object ChatBotProvider {
     data class OutgoingMessage(
         val chatId: String,
         val text: String,
-        val tools: List<Tools>
+        val tools: List<Tools>,
+        val accessToken: String
     )
 
     @Serializable
@@ -42,13 +45,17 @@ object ChatBotProvider {
     suspend fun sendChatMessage(chatId: String, message: String): SupabaseProvider.ChatMessage? {
 
         try {
+            supabase.auth.awaitInitialization()
+            var session = supabase.auth.currentSessionOrNull()
+
             var reply = httpClient.post("https://n8n.safehub-lcup.uk/webhook/akasha"){
                 contentType(ContentType.Application.Json)
                 setBody(
                     OutgoingMessage(
                         chatId = chatId,
                         text = message,
-                        tools = Settings.enabledTools.toList()
+                        tools = Settings.enabledTools.toList(),
+                        accessToken = session?.accessToken ?: ""
                     )
                 )
             }.body<ChatBotReply>()

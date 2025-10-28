@@ -5,7 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +34,7 @@ fun ChatBox(
     val chatMessages = remember { mutableStateListOf<ChatMessage>() }
     var userInput by remember { mutableStateOf(TextFieldValue("")) }
     val coroutineScope = rememberCoroutineScope()
+    var loading by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         chatMessages.addAll(chat.messages)
@@ -69,8 +73,11 @@ fun ChatBox(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    modifier = Modifier.height(55.dp),
+                    modifier = Modifier.size(56.dp),
+                    contentPadding = PaddingValues(0.dp),
                     onClick = {
+                        if(loading) return@Button
+
                         if (userInput.text.isNotBlank()) {
                             val userMessage = userInput.text
                             chatMessages.add(
@@ -80,6 +87,7 @@ fun ChatBox(
                                 )
                             )
 
+                            loading = true
                             coroutineScope.launch {
                                 val reply = sendChatMessage(chat.id, userMessage)
                                 if (reply == null) {
@@ -88,18 +96,31 @@ fun ChatBox(
                                     chatMessages.add(reply)
                                 }
                                 onUpdateChat?.invoke(chat.copy(messages = chatMessages.toMutableList()))
+                                loading = false
                             }
 
                             userInput = TextFieldValue("")
                         }
                     },
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
+                        containerColor = if(loading) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("Send", modifier = Modifier.padding(horizontal = 4.dp))
+                    if (loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Send",
+                            tint = Color.White,
+                        )
+                    }
                 }
             }
         }
