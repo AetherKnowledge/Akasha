@@ -1,5 +1,7 @@
 package com.rosuelo.chatbot
 
+import android.graphics.LinearGradient
+import android.graphics.Shader
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +22,9 @@ class NewChatFragment : Fragment() {
     }
 
     var listener: Listener? = null
+    private var displayName: String = "User"
+    private var greetingTextView: TextView? = null
+    private var userIdArg: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -28,36 +33,70 @@ class NewChatFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.new_chat, container, false)
 
-        val greeting = view.findViewById<TextView>(R.id.txtGreeting)
-        val edtQuery = view.findViewById<EditText>(R.id.edtQuery)
+    val greeting = view.findViewById<TextView>(R.id.txtGreeting)
+    greetingTextView = greeting
+    val edtQuery = view.findViewById<EditText>(R.id.edtQuery)
         val btnAsk = view.findViewById<Button>(R.id.btnAsk)
         val progress = view.findViewById<ProgressBar>(R.id.progressAsk)
+    val contentRow = view.findViewById<View>(R.id.contentRow)
 
-        // Set greeting text with gradient is not feasible in plain TextView; we fall back to solid color.
-        val name = arguments?.getString(ARG_DISPLAY_NAME) ?: "User"
-        greeting.text = "Hello, $name!"
+        updateGreetingText(displayName)
 
         btnAsk.setOnClickListener {
             if (progress.visibility == View.VISIBLE) return@setOnClickListener
             val text = edtQuery.text?.toString()?.trim().orEmpty()
             if (text.isEmpty()) return@setOnClickListener
 
+            // Show centered loader, hide the row
             progress.visibility = View.VISIBLE
+            contentRow.visibility = View.INVISIBLE
             btnAsk.isEnabled = false
 
             viewLifecycleOwner.lifecycleScope.launch {
                 val chat = createNewChatandSendMessage(
-                    userId = requireArguments().getString(ARG_USER_ID) ?: return@launch,
+                    userId = (userIdArg ?: arguments?.getString(ARG_USER_ID)) ?: return@launch,
                     prompt = text
                 )
                 edtQuery.setText("")
                 progress.visibility = View.GONE
+                contentRow.visibility = View.VISIBLE
                 btnAsk.isEnabled = true
                 listener?.onNewChatCreated(chat)
             }
         }
 
         return view
+    }
+
+    fun setDisplayName(name: String) {
+        updateGreetingText(name)
+    }
+
+    fun setUserId(userId: String) {
+        userIdArg = userId
+    }
+
+    private fun updateGreetingText(name: String) {
+        // store for view-less state
+        displayName = name
+        val g = greetingTextView ?: return
+        g.text = "Hello, $name!"
+        // Apply gradient after layout
+        g.post {
+            val height = g.height.toFloat()
+            if (height > 0f) {
+                val primary = requireContext().getColor(R.color.ak_primary)
+                val secondary = requireContext().getColor(R.color.ak_secondary)
+                val shader = LinearGradient(
+                    0f, 0f, 0f, height,
+                    intArrayOf(secondary, primary),
+                    floatArrayOf(0f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+                g.paint.shader = shader
+                g.invalidate()
+            }
+        }
     }
 
     companion object {

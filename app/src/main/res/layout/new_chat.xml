@@ -32,53 +32,62 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/cardContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/bg_surface_card"
         android:padding="16dp"
-        android:orientation="horizontal"
         app:layout_constraintTop_toBottomOf="@id/spaceAfterGreeting"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <EditText
-            android:id="@+id/edtQuery"
-            android:layout_width="0dp"
+        <!-- Normal content row -->
+        <LinearLayout
+            android:id="@+id/contentRow"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Ask Akasha"
-            android:singleLine="true"
-            android:background="@drawable/bg_outlined_edittext"
-            android:padding="12dp"
-            android:textColor="@color/ak_on_background"
-            android:textColorHint="@color/ak_on_background_60" />
+            android:orientation="horizontal">
 
-        <Space
-            android:layout_width="12dp"
-            android:layout_height="0dp" />
+            <EditText
+                android:id="@+id/edtQuery"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Ask Akasha"
+                android:singleLine="true"
+                android:background="@drawable/bg_outlined_edittext"
+                android:padding="12dp"
+                android:textColor="@color/ak_on_background"
+                android:textColorHint="@color/ak_on_background_60" />
 
-        <Button
-            android:id="@+id/btnAsk"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:minWidth="72dp"
-            android:background="@drawable/bg_primary_button"
-            android:text="Ask"
-            android:textAllCaps="false"
-            android:textColor="@color/ak_on_background" />
+            <Space
+                android:layout_width="12dp"
+                android:layout_height="0dp" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAsk"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:minWidth="72dp"
+                android:text="Ask"
+                android:textAllCaps="false"
+                android:textColor="@color/ak_on_background"
+                app:cornerRadius="10dp"
+                app:backgroundTint="@color/ak_primary" />
+        </LinearLayout>
+
+        <!-- Centered loading state that replaces the row -->
         <ProgressBar
             android:id="@+id/progressAsk"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
             android:indeterminate="true"
             android:indeterminateTint="@color/ak_on_background"
             android:visibility="gone" />
-    </LinearLayout>
+    </FrameLayout>
     
 
 </androidx.constraintlayout.widget.ConstraintLayout>

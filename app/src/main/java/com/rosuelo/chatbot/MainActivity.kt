@@ -40,10 +40,10 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
     private var lastHamburgerClick: (() -> Unit)? = null
     private var lastSettingsClick: (() -> Unit)? = null
     private var lastLogoutClick: (() -> Unit)? = null
-    private var onNewChatCreatedListener: ((Chat?) -> Unit)? = null
 
     fun clearAllScreen(){
         this.findViewById<View>(R.id.newChatContainer)?.visibility = View.GONE
+        this.findViewById<View>(R.id.chatBoxContainer)?.visibility = View.GONE
         this.findViewById<View>(R.id.settingsContainer)?.visibility = View.GONE
         this.findViewById<View>(R.id.messagesContainer)?.visibility = View.GONE
         this.findViewById<View>(R.id.composeContainer)?.visibility = View.GONE
@@ -62,29 +62,6 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
         lastHamburgerClick = onHamburger
         lastSettingsClick = onSettings
         lastLogoutClick = onLogout
-    }
-
-    fun setOnNewChatCreated(listener: ((Chat?) -> Unit)?) {
-        onNewChatCreatedListener = listener
-    }
-
-    fun showNewChatScreen(user: UserData) {
-        clearAllScreen()
-        findViewById<View>(R.id.newChatContainer)?.visibility = View.VISIBLE
-        val tag = "new_chat"
-        val displayName = user.name ?: displayNameFromEmail(user.email)
-        val existing = supportFragmentManager.findFragmentByTag(tag) as? NewChatFragment
-        if (existing == null) {
-            supportFragmentManager.commit {
-                setReorderingAllowed(true)
-                replace(R.id.newChatContainer, NewChatFragment.newInstance(user.id, displayName), tag)
-            }
-        }
-        (supportFragmentManager.findFragmentByTag(tag) as? NewChatFragment)?.listener = object : NewChatFragment.Listener {
-            override fun onNewChatCreated(chat: Chat?) {
-                onNewChatCreatedListener?.invoke(chat)
-            }
-        }
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -241,15 +218,36 @@ fun PanelSwitcher(
         when (currentPanel) {
             PanelState.NEW_CHAT -> {
                 activity?.clearAllScreen()
-                LaunchedEffect(currentUser.id) {
-                    activity?.showNewChatScreen(currentUser)
-                    activity?.setOnNewChatCreated { chat ->
-                        currentChat = chat
-                        if (chat != null) {
-                            chats = chats + chat
-                            currentPanel = PanelState.CHAT_BOX
+                activity?.findViewById<View>(R.id.newChatContainer)?.visibility = View.VISIBLE
+                val tag = "new_chat"
+                val displayName = currentUser.name ?: displayNameFromEmail(currentUser.email)
+                val existing = activity?.supportFragmentManager?.findFragmentByTag(tag) as? NewChatFragment
+                if (existing == null && activity != null) {
+                    // Create with required arguments to avoid runtime crashes
+                    val fragment = NewChatFragment.newInstance(currentUser.id, displayName)
+                    activity.supportFragmentManager.beginTransaction()
+                        .setReorderingAllowed(true)
+                        .replace(R.id.newChatContainer, fragment, tag)
+                        .commitNow()
+                }
+                (activity?.supportFragmentManager?.findFragmentByTag(tag) as? NewChatFragment)?.let {frag ->
+                    frag.listener = object : NewChatFragment.Listener {
+                        override fun onNewChatCreated(chat: Chat?) {
+                            currentChat = chat
+                            if (chat != null) {
+                                chats = listOf(chat) + chats
+                                Log.d(
+                                    "PanelSwitcher",
+                                    "New chat created with id=${chat.id}, switching to CHAT_BOX"
+                                )
+                                currentPanel = PanelState.CHAT_BOX
+                            }
                         }
                     }
+
+                    // Ensure fragment has correct display name and user id even if it already existed
+                    frag.setDisplayName(displayName)
+                    frag.setUserId(currentUser.id)
                 }
             }
             PanelState.CHAT_BOX -> {
