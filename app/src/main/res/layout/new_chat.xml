@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/newChatRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="100dp">
+
+    <TextView
+        android:id="@+id/txtGreeting"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Hello, User!"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="@color/ak_on_background"
+        android:gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/spaceAfterGreeting"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Space
+        android:id="@+id/spaceAfterGreeting"
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        app:layout_constraintTop_toBottomOf="@id/txtGreeting"
+        app:layout_constraintBottom_toTopOf="@id/cardContainer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/cardContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_surface_card"
+        android:padding="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/spaceAfterGreeting"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <EditText
+            android:id="@+id/edtQuery"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Ask Akasha"
+            android:singleLine="true"
+            android:background="@drawable/bg_outlined_edittext"
+            android:padding="12dp"
+            android:textColor="@color/ak_on_background"
+            android:textColorHint="@color/ak_on_background_60" />
+
+        <Space
+            android:layout_width="12dp"
+            android:layout_height="0dp" />
+
+        <Button
+            android:id="@+id/btnAsk"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:minWidth="72dp"
+            android:background="@drawable/bg_primary_button"
+            android:text="Ask"
+            android:textAllCaps="false"
+            android:textColor="@color/ak_on_background" />
+
+        <ProgressBar
+            android:id="@+id/progressAsk"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/ak_on_background"
+            android:visibility="gone" />
+    </LinearLayout>
+    
+
+</androidx.constraintlayout.widget.ConstraintLayout>

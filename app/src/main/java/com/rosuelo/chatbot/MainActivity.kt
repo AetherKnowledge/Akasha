@@ -24,10 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.commit
+import android.view.View
 import com.rosuelo.chatbot.SupabaseProvider.Chat
 import com.rosuelo.chatbot.SupabaseProvider.getChats
 import com.rosuelo.chatbot.SupabaseProvider.supabase
@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
     private var lastHamburgerClick: (() -> Unit)? = null
     private var lastSettingsClick: (() -> Unit)? = null
     private var lastLogoutClick: (() -> Unit)? = null
+    private var onNewChatCreatedListener: ((Chat?) -> Unit)? = null
 
     fun installTopBarCallbacks(
         onHamburger: (() -> Unit)?,
@@ -52,6 +53,34 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
         lastHamburgerClick = onHamburger
         lastSettingsClick = onSettings
         lastLogoutClick = onLogout
+    }
+
+    fun setOnNewChatCreated(listener: ((Chat?) -> Unit)?) {
+        onNewChatCreatedListener = listener
+    }
+
+    fun showNewChatScreen(user: UserData) {
+        findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.GONE
+        findViewById<android.view.View>(R.id.newChatContainer)?.visibility = android.view.View.VISIBLE
+        val tag = "new_chat"
+        val displayName = user.name ?: displayNameFromEmail(user.email)
+        val existing = supportFragmentManager.findFragmentByTag(tag) as? NewChatFragment
+        if (existing == null) {
+            supportFragmentManager.commit {
+                setReorderingAllowed(true)
+                replace(R.id.newChatContainer, NewChatFragment.newInstance(user.id, displayName), tag)
+            }
+        }
+        (supportFragmentManager.findFragmentByTag(tag) as? NewChatFragment)?.listener = object : NewChatFragment.Listener {
+            override fun onNewChatCreated(chat: Chat?) {
+                onNewChatCreatedListener?.invoke(chat)
+            }
+        }
+    }
+
+    fun hideNewChatScreen() {
+        findViewById<android.view.View>(R.id.newChatContainer)?.visibility = android.view.View.GONE
+        findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.VISIBLE
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,61 +121,69 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
                     LaunchedEffect(Unit) { refreshUser() }
 
                     if (refreshingUser) {
-                        findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.GONE
+                        (LocalActivityHolder.current as? MainActivity)?.hideNewChatScreen()
+                        (LocalActivityHolder.current as? MainActivity)?.findViewById<View>(R.id.settingsContainer)?.visibility = View.GONE
+                        (LocalActivityHolder.current as? MainActivity)
+                            ?.findViewById<android.view.View>(R.id.topBarContainer)
+                            ?.visibility = android.view.View.GONE
                         Loading()
                         return@ChatbotTheme
                     }
 
                     if (user != null) {
                         // Remove register fragment if present and show compose
-                        findViewById<android.view.View>(R.id.registerContainer)?.visibility = android.view.View.GONE
-                        supportFragmentManager.findFragmentByTag("register")?.let { frag ->
-                            supportFragmentManager.commit { remove(frag) }
-                        }
-                        findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.VISIBLE
-                        // Show top bar and bind user
-                        findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.VISIBLE
-                        (supportFragmentManager.findFragmentById(R.id.topBarContainer) as? ChatTopBarFragment)?.bindUser(user!!)
-
-                        Scaffold(
-                            modifier = Modifier.fillMaxSize(),
-                            containerColor = Color.Transparent
-                        ) { innerPadding ->
-
-                            Column(modifier = Modifier.padding(innerPadding).padding(8.dp)) {
-                                PanelSwitcher(
-                                    user!!,
-                                    onLogoutClick = {
-                                        refreshingUser = true
-                                        coroutineScope.launch {
-                                            supabase.auth.signOut()
-                                            refreshUser()
-                                        }
-                                    },
-                                    onUserUpdate = { updatedUser ->
-                                        user = updatedUser
-                                    }
-                                )
+                        (LocalActivityHolder.current as? MainActivity)?.let { activity ->
+                            activity.findViewById<android.view.View>(R.id.registerContainer)?.visibility = android.view.View.GONE
+                            activity.supportFragmentManager.findFragmentByTag("register")?.let { frag ->
+                                activity.supportFragmentManager.commit { remove(frag) }
                             }
+                            activity.findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.VISIBLE
+                        }
+                        // Show top bar and bind user
+                        (LocalActivityHolder.current as? MainActivity)?.let { activity ->
+                            activity.findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.VISIBLE
+                            (activity.supportFragmentManager.findFragmentById(R.id.topBarContainer) as? ChatTopBarFragment)?.bindUser(user!!)
+                        }
+
+                        Column() {
+                            PanelSwitcher(
+                                user!!,
+                                onLogoutClick = {
+                                    refreshingUser = true
+                                    coroutineScope.launch {
+                                        supabase.auth.signOut()
+                                        refreshUser()
+                                    }
+                                },
+                                onUserUpdate = { updatedUser ->
+                                    user = updatedUser
+                                }
+                            )
                         }
                     } else {
                         // Hide top bar on Register screen and show XML fragment
-                        findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.GONE
-                        findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.GONE
-                        val tag = "register"
-                        val existingRegister = supportFragmentManager.findFragmentByTag(tag)
-                        if (existingRegister == null) {
-                            supportFragmentManager.commit {
-                                setReorderingAllowed(true)
-                                replace(R.id.registerContainer, RegisterFragment(), tag)
+                        (LocalActivityHolder.current as? MainActivity)?.let { activity ->
+                            activity.findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.GONE
+                            activity.findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.GONE
+                            val tag = "register"
+                            val existingRegister = activity.supportFragmentManager.findFragmentByTag(tag)
+                            if (existingRegister == null) {
+                                activity.supportFragmentManager
+                                    .beginTransaction()
+                                    .setReorderingAllowed(true)
+                                    .replace(R.id.registerContainer, RegisterFragment(), tag)
+                                    .commitNow()
                             }
-                        }
-                        findViewById<android.view.View>(R.id.registerContainer)?.visibility = android.view.View.VISIBLE
-                        (supportFragmentManager.findFragmentByTag(tag) as? RegisterFragment)?.let { frag ->
-                            frag.listener = object : RegisterFragment.Listener {
-                                override fun onAuthSuccess(userData: UserData) {
-                                    refreshingUser = true
-                                    coroutineScope.launch { refreshUser() }
+                            activity.findViewById<android.view.View>(R.id.registerContainer)?.visibility = android.view.View.VISIBLE
+                            (activity.supportFragmentManager.findFragmentByTag(tag) as? RegisterFragment)?.let { frag ->
+                                frag.listener = object : RegisterFragment.Listener {
+                                    override fun onAuthSuccess(userData: UserData) {
+                                        refreshingUser = true
+                                        // Immediately switch containers so the UI responds right away
+                                        activity.findViewById<View>(R.id.registerContainer)?.visibility = View.GONE
+                                        activity.findViewById<View>(R.id.composeContainer)?.visibility = View.VISIBLE
+                                        coroutineScope.launch { refreshUser() }
+                                    }
                                 }
                             }
                         }
@@ -196,24 +233,33 @@ fun PanelSwitcher(
 
     Column {
         when (currentPanel) {
-            PanelState.NEW_CHAT -> NewChat(
-                userData = currentUser,
-                onAsk = { chat ->
-                    currentChat = chat
-                    if (chat != null) {
-                        chats = chats + chat
+            PanelState.NEW_CHAT -> {
+                val activity = LocalActivityHolder.current as? MainActivity
+                LaunchedEffect(currentUser.id) {
+                    activity?.showNewChatScreen(currentUser)
+                    activity?.setOnNewChatCreated { chat ->
                         currentChat = chat
-                        currentPanel = PanelState.CHAT_BOX
+                        if (chat != null) {
+                            chats = chats + chat
+                            currentPanel = PanelState.CHAT_BOX
+                        }
                     }
                 }
-            )
-            PanelState.CHAT_BOX -> ChatBox(currentChat!!,
+            }
+            PanelState.CHAT_BOX -> {
+                (LocalActivityHolder.current as? MainActivity)?.hideNewChatScreen()
+                ChatBox(currentChat!!,
                 onUpdateChat = { updatedChat ->
                     chats = chats.map { if (it.id == updatedChat.id) updatedChat else it }
                     currentChat = updatedChat
                 }
             )
-            PanelState.MESSAGES_BOX -> MessagesBox(
+            }
+            PanelState.MESSAGES_BOX -> {
+                (LocalActivityHolder.current as? MainActivity)?.hideNewChatScreen()
+                (LocalActivityHolder.current as? MainActivity)?.findViewById<View>(R.id.settingsContainer)?.visibility = View.GONE
+
+                MessagesBox(
                 chats = chats,
                 onChatClick = { chat ->
                     currentChat = chat
@@ -230,12 +276,50 @@ fun PanelSwitcher(
                     }
                 }
             )
-            PanelState.SETTINGS -> SettingsScreen(
-                userData = currentUser,
-                onBack = { currentPanel = PanelState.NEW_CHAT },
-                onUserUpdate = onUserUpdate,
-                onLogoutClick = onLogoutClick,
-            )
+            }
+            PanelState.SETTINGS -> {
+                val activity = LocalActivityHolder.current as? MainActivity
+                // Hide NewChatFragment when moving to settings
+                activity?.hideNewChatScreen()
+                // Hide Compose container while settings XML is visible
+                activity?.findViewById<View>(R.id.composeContainer)?.visibility = View.GONE
+                val tag = "settings"
+                val existing = activity?.supportFragmentManager?.findFragmentByTag(tag) as? SettingsFragment
+                if (existing == null && activity != null) {
+                    activity.supportFragmentManager.beginTransaction()
+                        .setReorderingAllowed(true)
+                        .replace(R.id.settingsContainer, SettingsFragment.newInstance(currentUser), tag)
+                        .commitNow()
+                }
+                activity?.findViewById<View>(R.id.settingsContainer)?.visibility = View.VISIBLE
+                (activity?.supportFragmentManager?.findFragmentByTag(tag) as? SettingsFragment)?.let { frag ->
+                    frag.listener = object : SettingsFragment.Listener {
+                        override fun onBack() {
+                            activity.findViewById<View>(R.id.settingsContainer)?.visibility = View.GONE
+                            activity.findViewById<View>(R.id.composeContainer)?.visibility = View.VISIBLE
+                            currentPanel = PanelState.NEW_CHAT
+                        }
+                        override fun onLogout() { onLogoutClick?.invoke() }
+                        override fun onUserUpdate(userData: UserData) {
+                            onUserUpdate?.invoke(userData)
+                            // Also immediately update the top bar avatar
+                            (activity.supportFragmentManager.findFragmentById(R.id.topBarContainer) as? ChatTopBarFragment)
+                                ?.bindUser(userData)
+                        }
+                    }
+                }
+            }
         }
+    }
+}
+
+private fun displayNameFromEmail(email: String): String {
+    val local = email.substringBefore('@')
+    val parts = local.split('.', '_', '-', '+')
+        .filter { it.isNotBlank() }
+        .take(3)
+    if (parts.isEmpty()) return email
+    return parts.joinToString(" ") { part ->
+        part.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
     }
 }

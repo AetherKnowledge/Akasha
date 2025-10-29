@@ -134,7 +134,7 @@
                 android:layout_centerVertical="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/show_password"
-                android:tint="@color/ak_on_background"
+                app:tint="@color/ak_on_background"
                 android:src="@drawable/ic_visibility_24" />
         </RelativeLayout>
 

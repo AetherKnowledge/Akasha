@@ -339,29 +339,7 @@ private fun ToolsSection() {
     }
 }
 
-@Serializable
-data class ImageData(
-    val bytes: ByteArray?,
-    val mimeType: String?
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ImageData
-
-        if (!bytes.contentEquals(other.bytes)) return false
-        if (mimeType != other.mimeType) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = bytes.contentHashCode()
-        result = 31 * result + mimeType.hashCode()
-        return result
-    }
-}
+// ImageData moved to ImageData.kt for shared use
 
 private fun displayNameFromEmail(email: String): String {
     val local = email.substringBefore('@')

@@ -2,5 +2,24 @@
 <resources>
 
     <!-- AppCompat theme required for AppCompatActivity and PopupMenu -->
-    <style name="Theme.Chatbot" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="Theme.Chatbot" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="popupMenuStyle">@style/Widget.Chatbot.PopupMenu</item>
+    </style>
+
+    <style name="Widget.Chatbot.PopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+        <item name="android:itemTextAppearance">@style/TextAppearance.Chatbot.PopupMenuItem</item>
+        <item name="android:itemBackground">@drawable/bg_popup_menu</item>
+    </style>
+
+    <style name="TextAppearance.Chatbot.PopupMenuItem" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:textColor">@color/ak_on_background</item>
+    </style>
+
+    <!-- Theme overlay to enforce white text for PopupMenu items -->
+    <style name="ThemeOverlay.Chatbot.PopupMenu" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="android:textColorPrimary">@color/ak_on_background</item>
+        <item name="android:textColorSecondary">@color/ak_on_background</item>
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+    </style>
 </resources>

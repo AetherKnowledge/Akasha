@@ -171,7 +171,8 @@ fun NewChat(
     }
 }
 
-private suspend fun createNewChatandSendMessage(userId: String, prompt: String): Chat? {
+// Expose for NewChatFragment usage as well
+suspend fun createNewChatandSendMessage(userId: String, prompt: String): Chat? {
     var newChat = createNewChat(userId, title = prompt.take(20))
     if (newChat == null) {
         return null
