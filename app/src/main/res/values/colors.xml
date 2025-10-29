@@ -16,4 +16,9 @@
     <color name="ak_on_primary">#FFFFFFFF</color>
     <color name="ak_primary_container">#FF404040</color>
     <color name="ak_secondary_container">#FF262626</color>
+    
+    <!-- Alpha variants for outlined text fields to match Compose -->
+    <color name="ak_on_background_30">#4DE3E1E6</color> <!-- 30% alpha -->
+    <color name="ak_on_background_50">#80E3E1E6</color> <!-- 50% alpha -->
+    <color name="ak_on_background_60">#99E3E1E6</color> <!-- 60% alpha -->
 </resources>

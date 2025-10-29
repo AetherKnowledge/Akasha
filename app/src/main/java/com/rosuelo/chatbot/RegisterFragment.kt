@@ -61,9 +61,35 @@ class RegisterFragment : Fragment() {
 
         fun refreshTexts() {
             txtSubtitle.text = if (isLogin) getString(R.string.login_to_your_account) else getString(R.string.create_new_account)
+            // Keep human-friendly capitalization (no all caps)
             btnPrimary.text = if (isLogin) getString(R.string.login) else getString(R.string.sign_up)
             txtOr.text = if (isLogin) getString(R.string.or_log_in_with) else getString(R.string.or_sign_up_with)
-            txtToggle.text = if (isLogin) "Don't have an account? Sign Up" else "Already have an account? Log In"
+
+            if (isLogin) {
+                // Color only the "Sign Up" part with primary color in login mode
+                val full = "Don't have an account? Sign Up"
+                val ss = android.text.SpannableString(full)
+                val target = "Sign Up"
+                val start = full.indexOf(target)
+                if (start >= 0) {
+                    val end = start + target.length
+                    val color = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.ak_primary)
+                    ss.setSpan(android.text.style.ForegroundColorSpan(color), start, end, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                txtToggle.text = ss
+            } else {
+                // Color only the "Log In" part with primary color
+                val full = "Already have an account? Log In"
+                val ss = android.text.SpannableString(full)
+                val target = "Log In"
+                val start = full.indexOf(target)
+                if (start >= 0) {
+                    val end = start + target.length
+                    val color = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.ak_primary)
+                    ss.setSpan(android.text.style.ForegroundColorSpan(color), start, end, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                txtToggle.text = ss
+            }
         }
         refreshTexts()
 
