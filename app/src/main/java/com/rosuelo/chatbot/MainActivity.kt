@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
         (supportFragmentManager.findFragmentById(R.id.topBarContainer) as? ChatTopBarFragment)?.let { it.listener = this }
 
         composeContainer = findViewById(R.id.composeContainer)
-    composeContainer?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        composeContainer?.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         composeContainer?.setContent {
             CompositionLocalProvider(LocalActivityHolder provides this) {
                 ChatbotTheme {
@@ -92,11 +92,18 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
                     LaunchedEffect(Unit) { refreshUser() }
 
                     if (refreshingUser) {
+                        findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.GONE
                         Loading()
                         return@ChatbotTheme
                     }
 
                     if (user != null) {
+                        // Remove register fragment if present and show compose
+                        findViewById<android.view.View>(R.id.registerContainer)?.visibility = android.view.View.GONE
+                        supportFragmentManager.findFragmentByTag("register")?.let { frag ->
+                            supportFragmentManager.commit { remove(frag) }
+                        }
+                        findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.VISIBLE
                         // Show top bar and bind user
                         findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.VISIBLE
                         (supportFragmentManager.findFragmentById(R.id.topBarContainer) as? ChatTopBarFragment)?.bindUser(user!!)
@@ -123,12 +130,26 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
                             }
                         }
                     } else {
-                        // Hide top bar on Register screen
+                        // Hide top bar on Register screen and show XML fragment
                         findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.GONE
-                        RegisterScreen(onRegister = {
-                            refreshingUser = true
-                            coroutineScope.launch { refreshUser() }
-                        })
+                        findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.GONE
+                        val tag = "register"
+                        val existingRegister = supportFragmentManager.findFragmentByTag(tag)
+                        if (existingRegister == null) {
+                            supportFragmentManager.commit {
+                                setReorderingAllowed(true)
+                                replace(R.id.registerContainer, RegisterFragment(), tag)
+                            }
+                        }
+                        findViewById<android.view.View>(R.id.registerContainer)?.visibility = android.view.View.VISIBLE
+                        (supportFragmentManager.findFragmentByTag(tag) as? RegisterFragment)?.let { frag ->
+                            frag.listener = object : RegisterFragment.Listener {
+                                override fun onAuthSuccess(userData: UserData) {
+                                    refreshingUser = true
+                                    coroutineScope.launch { refreshUser() }
+                                }
+                            }
+                        }
                     }
                 }
             }
