@@ -1,15 +1,14 @@
 package com.rosuelo.chatbot
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -21,9 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.commit
@@ -45,6 +42,18 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
     private var lastLogoutClick: (() -> Unit)? = null
     private var onNewChatCreatedListener: ((Chat?) -> Unit)? = null
 
+    fun clearAllScreen(){
+        this.findViewById<View>(R.id.newChatContainer)?.visibility = View.GONE
+        this.findViewById<View>(R.id.settingsContainer)?.visibility = View.GONE
+        this.findViewById<View>(R.id.messagesContainer)?.visibility = View.GONE
+        this.findViewById<View>(R.id.composeContainer)?.visibility = View.GONE
+        this.findViewById<View>(R.id.registerContainer)?.visibility = View.GONE
+    }
+
+    fun showChatTopBar(show: Boolean){
+        this.findViewById<View>(R.id.topBarContainer)?.visibility = if (show) View.VISIBLE else View.GONE
+    }
+
     fun installTopBarCallbacks(
         onHamburger: (() -> Unit)?,
         onSettings: (() -> Unit)?,
@@ -60,8 +69,8 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
     }
 
     fun showNewChatScreen(user: UserData) {
-        findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.GONE
-        findViewById<android.view.View>(R.id.newChatContainer)?.visibility = android.view.View.VISIBLE
+        clearAllScreen()
+        findViewById<View>(R.id.newChatContainer)?.visibility = View.VISIBLE
         val tag = "new_chat"
         val displayName = user.name ?: displayNameFromEmail(user.email)
         val existing = supportFragmentManager.findFragmentByTag(tag) as? NewChatFragment
@@ -77,12 +86,7 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
             }
         }
     }
-
-    fun hideNewChatScreen() {
-        findViewById<android.view.View>(R.id.newChatContainer)?.visibility = android.view.View.GONE
-        findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.VISIBLE
-    }
-
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Settings.initialize(this)
@@ -91,7 +95,7 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContentView(R.layout.activity_main)
-        val root = findViewById<android.view.View>(android.R.id.content)
+        val root = findViewById<View>(android.R.id.content)
         // Dark status bar icons off (light icons on dark bg)
         WindowInsetsControllerCompat(window, root).isAppearanceLightStatusBars = false
 
@@ -121,11 +125,10 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
                     LaunchedEffect(Unit) { refreshUser() }
 
                     if (refreshingUser) {
-                        (LocalActivityHolder.current as? MainActivity)?.hideNewChatScreen()
-                        (LocalActivityHolder.current as? MainActivity)?.findViewById<View>(R.id.settingsContainer)?.visibility = View.GONE
+                        clearAllScreen()
                         (LocalActivityHolder.current as? MainActivity)
-                            ?.findViewById<android.view.View>(R.id.topBarContainer)
-                            ?.visibility = android.view.View.GONE
+                            ?.findViewById<View>(R.id.topBarContainer)
+                            ?.visibility = View.GONE
                         Loading()
                         return@ChatbotTheme
                     }
@@ -133,19 +136,19 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
                     if (user != null) {
                         // Remove register fragment if present and show compose
                         (LocalActivityHolder.current as? MainActivity)?.let { activity ->
-                            activity.findViewById<android.view.View>(R.id.registerContainer)?.visibility = android.view.View.GONE
+                            clearAllScreen()
                             activity.supportFragmentManager.findFragmentByTag("register")?.let { frag ->
                                 activity.supportFragmentManager.commit { remove(frag) }
                             }
-                            activity.findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.VISIBLE
+                            activity.findViewById<View>(R.id.composeContainer)?.visibility = View.VISIBLE
                         }
                         // Show top bar and bind user
                         (LocalActivityHolder.current as? MainActivity)?.let { activity ->
-                            activity.findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.VISIBLE
+                            activity.findViewById<View>(R.id.topBarContainer)?.visibility = View.VISIBLE
                             (activity.supportFragmentManager.findFragmentById(R.id.topBarContainer) as? ChatTopBarFragment)?.bindUser(user!!)
                         }
 
-                        Column() {
+                        Column {
                             PanelSwitcher(
                                 user!!,
                                 onLogoutClick = {
@@ -163,8 +166,8 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
                     } else {
                         // Hide top bar on Register screen and show XML fragment
                         (LocalActivityHolder.current as? MainActivity)?.let { activity ->
-                            activity.findViewById<android.view.View>(R.id.topBarContainer)?.visibility = android.view.View.GONE
-                            activity.findViewById<android.view.View>(R.id.composeContainer)?.visibility = android.view.View.GONE
+                            showChatTopBar(false)
+                            clearAllScreen()
                             val tag = "register"
                             val existingRegister = activity.supportFragmentManager.findFragmentByTag(tag)
                             if (existingRegister == null) {
@@ -174,7 +177,7 @@ class MainActivity : AppCompatActivity(), ChatTopBarFragment.Listener {
                                     .replace(R.id.registerContainer, RegisterFragment(), tag)
                                     .commitNow()
                             }
-                            activity.findViewById<android.view.View>(R.id.registerContainer)?.visibility = android.view.View.VISIBLE
+                            activity.findViewById<View>(R.id.registerContainer)?.visibility = View.VISIBLE
                             (activity.supportFragmentManager.findFragmentByTag(tag) as? RegisterFragment)?.let { frag ->
                                 frag.listener = object : RegisterFragment.Listener {
                                     override fun onAuthSuccess(userData: UserData) {
@@ -211,6 +214,8 @@ fun Loading() {
 
 private enum class PanelState { NEW_CHAT, CHAT_BOX, MESSAGES_BOX, SETTINGS }
 
+
+
 @Composable
 fun PanelSwitcher(
     currentUser: UserData,
@@ -221,6 +226,7 @@ fun PanelSwitcher(
     var currentChat by remember { mutableStateOf<Chat?>(null) }
     var chats by remember { mutableStateOf<List<Chat>>(emptyList()) }
     val coroutineScope = rememberCoroutineScope()
+    val activity = LocalActivityHolder.current as? MainActivity
 
     LaunchedEffect(Unit) { chats = getChats(currentUser.id) }
 
@@ -234,7 +240,7 @@ fun PanelSwitcher(
     Column {
         when (currentPanel) {
             PanelState.NEW_CHAT -> {
-                val activity = LocalActivityHolder.current as? MainActivity
+                activity?.clearAllScreen()
                 LaunchedEffect(currentUser.id) {
                     activity?.showNewChatScreen(currentUser)
                     activity?.setOnNewChatCreated { chat ->
@@ -247,42 +253,52 @@ fun PanelSwitcher(
                 }
             }
             PanelState.CHAT_BOX -> {
-                (LocalActivityHolder.current as? MainActivity)?.hideNewChatScreen()
+                activity?.clearAllScreen()
+                activity?.findViewById<View>(R.id.composeContainer)?.visibility = View.VISIBLE
                 ChatBox(currentChat!!,
-                onUpdateChat = { updatedChat ->
-                    chats = chats.map { if (it.id == updatedChat.id) updatedChat else it }
-                    currentChat = updatedChat
-                }
-            )
+                    onUpdateChat = { updatedChat ->
+                        chats = chats.map { if (it.id == updatedChat.id) updatedChat else it }
+                        currentChat = updatedChat
+                    }
+                )
             }
             PanelState.MESSAGES_BOX -> {
-                (LocalActivityHolder.current as? MainActivity)?.hideNewChatScreen()
-                (LocalActivityHolder.current as? MainActivity)?.findViewById<View>(R.id.settingsContainer)?.visibility = View.GONE
-
-                MessagesBox(
-                chats = chats,
-                onChatClick = { chat ->
-                    currentChat = chat
-                    currentPanel = PanelState.CHAT_BOX
-                },
-                onNewChatClick = { currentPanel = PanelState.NEW_CHAT },
-                onDeleteChat = { chat ->
-                    coroutineScope.launch {
-                        chats = chats.filter { it.id != chat.id }
-                        if (currentChat?.id == chat.id) {
-                            currentPanel = PanelState.MESSAGES_BOX
-                            currentChat = null
+                activity?.clearAllScreen()
+                val tag = "messages"
+                val existing = activity?.supportFragmentManager?.findFragmentByTag(tag) as? MessagesBoxFragment
+                if (existing == null && activity != null) {
+                    activity.supportFragmentManager.beginTransaction()
+                        .setReorderingAllowed(true)
+                        .replace(R.id.messagesContainer, MessagesBoxFragment(), tag)
+                        .commitNow()
+                }
+                activity?.findViewById<View>(R.id.messagesContainer)?.visibility = View.VISIBLE
+                (activity?.supportFragmentManager?.findFragmentByTag(tag) as? MessagesBoxFragment)?.let { frag ->
+                    frag.listener = object : MessagesBoxFragment.Listener {
+                        override fun onNewChat() { currentPanel = PanelState.NEW_CHAT }
+                        override fun onChatClick(chat: Chat) {
+                            currentChat = chat
+                            currentPanel = PanelState.CHAT_BOX
+                            Log.d("PanelSwitcher", "Switched to CHAT_BOX for chat id=${chat.id}")
+                        }
+                        override fun onDeleteChat(chat: Chat) {
+                            coroutineScope.launch {
+                                SupabaseProvider.deleteChat(chat.id)
+                                val list = chats.filter { it.id != chat.id }
+                                chats = list
+                                frag.setChats(list)
+                                if (currentChat?.id == chat.id) {
+                                    currentChat = null
+                                }
+                            }
                         }
                     }
+                    // Keep fragment list in sync with compose state if already loaded
+                    frag.setChats(chats)
                 }
-            )
             }
             PanelState.SETTINGS -> {
-                val activity = LocalActivityHolder.current as? MainActivity
-                // Hide NewChatFragment when moving to settings
-                activity?.hideNewChatScreen()
-                // Hide Compose container while settings XML is visible
-                activity?.findViewById<View>(R.id.composeContainer)?.visibility = View.GONE
+                activity?.clearAllScreen()
                 val tag = "settings"
                 val existing = activity?.supportFragmentManager?.findFragmentByTag(tag) as? SettingsFragment
                 if (existing == null && activity != null) {
@@ -295,8 +311,7 @@ fun PanelSwitcher(
                 (activity?.supportFragmentManager?.findFragmentByTag(tag) as? SettingsFragment)?.let { frag ->
                     frag.listener = object : SettingsFragment.Listener {
                         override fun onBack() {
-                            activity.findViewById<View>(R.id.settingsContainer)?.visibility = View.GONE
-                            activity.findViewById<View>(R.id.composeContainer)?.visibility = View.VISIBLE
+                            activity.clearAllScreen()
                             currentPanel = PanelState.NEW_CHAT
                         }
                         override fun onLogout() { onLogoutClick?.invoke() }
