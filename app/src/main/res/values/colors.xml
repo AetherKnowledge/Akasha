@@ -7,4 +7,13 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Akasha DarkColorScheme equivalents -->
+    <color name="ak_primary">#FF147638</color>
+    <color name="ak_secondary">#FF4ED17E</color>
+    <color name="ak_background">#FF000000</color>
+    <color name="ak_on_background">#FFFFFFFF</color>
+    <color name="ak_on_primary">#FFFFFFFF</color>
+    <color name="ak_primary_container">#FF404040</color>
+    <color name="ak_secondary_container">#FF262626</color>
 </resources>

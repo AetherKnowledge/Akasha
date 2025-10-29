@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Akasha</string>
+    <string name="title_akasha_ai">Akasha AI</string>
+    <string name="cd_hamburger">Hamburger</string>
+    <string name="cd_logo">Akasha AI Logo</string>
+    <string name="cd_user_avatar">User avatar</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_logout">Logout</string>
 </resources>

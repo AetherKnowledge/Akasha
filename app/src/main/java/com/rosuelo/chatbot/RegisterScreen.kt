@@ -70,10 +70,9 @@ fun RegisterScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background.copy(alpha = 0f)),
         contentAlignment = Alignment.TopCenter
     ) {
-        Gradient()
 
         Column(
             modifier = Modifier
@@ -404,19 +403,4 @@ private fun RegisterPreview() {
     }
 }
 
-@Composable
-fun Gradient() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.35f)
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.background
-                    )
-                )
-            )
-    )
-}
+// XML gradient is applied in activity background

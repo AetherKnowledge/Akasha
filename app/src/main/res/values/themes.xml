@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Chatbot" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- AppCompat theme required for AppCompatActivity and PopupMenu -->
+    <style name="Theme.Chatbot" parent="Theme.AppCompat.Light.NoActionBar" />
 </resources>

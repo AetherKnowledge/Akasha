@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Approximation; real insets applied in Activity via edge-to-edge if available -->
+    <dimen name="status_bar_height">24dp</dimen>
+</resources>
