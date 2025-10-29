@@ -116,14 +116,6 @@ sealed interface AuthResponse {
     data class Error(val message: String?) : AuthResponse
 }
 
-suspend fun doesCurrentUserExist(): Boolean{
-    supabase.auth.awaitInitialization()
-    var session = supabase.auth.currentSessionOrNull()
-    Log.d("auth", "Session: $session")
-
-    return session != null
-}
-
 suspend fun getCurrentUser(): UserData?{
     supabase.auth.awaitInitialization()
     var session = supabase.auth.currentSessionOrNull()

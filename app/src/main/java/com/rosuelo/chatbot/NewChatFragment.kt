@@ -38,7 +38,7 @@ class NewChatFragment : Fragment() {
     val edtQuery = view.findViewById<EditText>(R.id.edtQuery)
         val btnAsk = view.findViewById<Button>(R.id.btnAsk)
         val progress = view.findViewById<ProgressBar>(R.id.progressAsk)
-    val contentRow = view.findViewById<View>(R.id.contentRow)
+        val contentRow = view.findViewById<View>(R.id.contentRow)
 
         updateGreetingText(displayName)
 

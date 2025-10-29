@@ -157,7 +157,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPrimary"
             android:layout_width="0dp"
             android:layout_height="48dp"
@@ -166,6 +166,7 @@
             android:padding="5dp"
             android:text="Sign Up"
             android:textColor="@color/ak_on_background"
+            app:backgroundTint="@color/ak_primary"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
